@@ -16,8 +16,8 @@ iso="CentOS-8.1.1911-x86_64-boot.iso"
 #
 # resulting ISO file name and volume label
 # such values will be determined again according to source image during ISO mount
-out="CentOS-8.1.1911-x86_64-minimal.iso"
-lbl="CentOS-8-1-1911-x86_64"
+out="CentOS-Stream-Minimal.iso"
+lbl="CentOS-Stream-Minimal"
 #
 # dependency resolving method
 # deep: check dependency of every package one by one
