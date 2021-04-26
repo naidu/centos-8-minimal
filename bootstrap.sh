@@ -119,13 +119,13 @@ function cmisomount() {
       mount -o loop "${iso}" "${md}" 2>&1 | cmpipe
       cmcheck
       echo "   ${md} mounted"
-      if [ "$(cat "${md}/isolinux/isolinux.cfg" | grep "CentOS Linux 8")" == "" ]; then
-         cmisounmount
-         echo
-         echo " ! Reference ISO should be one of the CentOS 8 distribution."
-         echo
-         exit
-      fi
+#       if [ "$(cat "${md}/isolinux/isolinux.cfg" | grep "CentOS Linux 8")" == "" ]; then
+#          cmisounmount
+#          echo
+#          echo " ! Reference ISO should be one of the CentOS 8 distribution."
+#          echo
+#          exit
+#       fi
    fi
 }
 
