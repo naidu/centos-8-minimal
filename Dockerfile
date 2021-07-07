@@ -9,5 +9,4 @@ RUN unzip /root/bootstrap.zip -d /root/
 RUN mv /root/centos-8-minimal-ef31f862908af773c74c234353e6bbad48b1ef5e/* /root/
 COPY create_iso_in_container.sh /root/
 RUN chmod +x /root/create_iso_in_container.sh && /root/create_iso_in_container.sh
-CMD ["ls -al /root"]
 CMD ["/bin/bash"]
