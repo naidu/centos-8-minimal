@@ -8,5 +8,5 @@ RUN curl -L -o /root/bootstrap.zip https://github.com/uboreas/centos-8-minimal/a
 RUN unzip /root/bootstrap.zip -d /root/
 RUN mv /root/centos-8-minimal-ef31f862908af773c74c234353e6bbad48b1ef5e/* /root/
 COPY create_iso_in_container.sh /root/
-RUN chmod +x create_iso_in_container.sh && /root/create_iso_in_container.sh
+RUN chmod +x /root/create_iso_in_container.sh && /root/create_iso_in_container.sh
 CMD ["/bin/bash"]
