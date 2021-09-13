@@ -1,10 +1,10 @@
 #!/bin/bash
 
-./bootstrap.sh clean
-./bootstrap.sh step isomount
-./bootstrap.sh step createtemplate
-./bootstrap.sh step scandeps
-./bootstrap.sh step createrepo
-./bootstrap.sh step createiso
-./bootstrap.sh step isounmount
-cp ./CentOS-8.3.2011-x86_64-minimal.iso /mnt/
+/root/bootstrap.sh clean
+/root/bootstrap.sh step isomount
+/root/bootstrap.sh step createtemplate
+/root/bootstrap.sh step scandeps
+/root/bootstrap.sh step createrepo
+/root/bootstrap.sh step createiso
+/root/bootstrap.sh step isounmount
+cp ./CentOS-Stream.iso /mnt/
