@@ -12,7 +12,7 @@
 # Default values
 #
 # default official ISO to use
-iso="CentOS-8.1.1911-x86_64-boot.iso"
+iso="CentOS-Stream.iso"
 #
 # resulting ISO file name and volume label
 # such values will be determined again according to source image during ISO mount
