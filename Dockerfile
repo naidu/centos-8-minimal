@@ -11,5 +11,5 @@ COPY templ_comps.xml /root/
 COPY templ_discinfo /root/
 COPY templ_media.repo /root/
 COPY templ_treeinfo /root/
-RUN chmod +x /root/create_iso_in_container.sh && /root/create_iso_in_container.sh
+RUN chmod +x /root/create_iso_in_container.sh && cd /root/; /root/create_iso_in_container.sh
 CMD ["/bin/bash"]
