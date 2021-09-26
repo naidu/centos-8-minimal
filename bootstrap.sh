@@ -559,7 +559,7 @@ function cmcreateiso() {
       elif [ "${ver}" == "Stream.8" ]; then
          ver="8.0.20191219"
       fi
-      out="CentOS-${ver}-x86_64-minimal.iso"
+      out="CentOS-x86_64-minimal.iso"
    fi
    echo " ~ Creating ISO image"
    cd "${dp}"
