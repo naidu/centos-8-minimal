@@ -645,7 +645,7 @@ function cmjobquick() {
 if [ ! -e /etc/centos-release ]; then
    cmnotcentos
 fi
-if [ "$(cat /etc/centos-release | grep "CentOS Linux release 8" | grep "CentOS Stream release 8")" == "" ]; then
+if [ "$(cat /etc/centos-release | grep "CentOS Linux release 8|CentOS Stream release 8")" == "" ]; then
    cmnotcentos
 fi
 if [ ! -e "/usr/bin/repoquery" -o ! -e "/usr/bin/createrepo" -o ! -e "/usr/bin/yumdownloader" -o ! -e "/usr/bin/curl" -o ! -e "/usr/bin/mkisofs" ]; then
