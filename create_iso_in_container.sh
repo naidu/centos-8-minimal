@@ -7,4 +7,3 @@ CMISO="$1" ./bootstrap.sh step scandeps
 CMISO="$1" ./bootstrap.sh step createrepo
 CMISO="$1" ./bootstrap.sh step createiso
 CMISO="$1" ./bootstrap.sh step isounmount
-cp ./CentOS-Stream.iso /tmp/
