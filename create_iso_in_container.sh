@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -e
 
 ./bootstrap.sh clean
 ./bootstrap.sh step isomount
