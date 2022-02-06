@@ -14,11 +14,12 @@ COPY iso-input/CentOS-8.1.1911-x86_64-boot.iso \
      iso-input/bootstrap.zip \
      create_iso_in_container.sh \
      iso-input/isolinux.cfg \
-     ks.cfg /root/ 
-RUN unzip /root/bootstrap.zip -d /root/ && \
-  rm -f /root/bootstrap.zip && \
-  mv /root/centos-8-minimal-ef31f862908af773c74c234353e6bbad48b1ef5e/* /root/ && \
-  rm -rf /root/centos-8-minimal-ef31f862908af773c74c234353e6bbad48b1ef5e
+     ks.cfg \
+     bootstrap.sh \
+     packages.txt \
+     templ_discinfo \
+     templ_media.repo \
+     templ_treeinfo /root/ 
 
 USER 0
 WORKDIR $USERHOME
