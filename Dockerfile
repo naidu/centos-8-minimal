@@ -15,9 +15,11 @@ COPY iso-input/CentOS-8.1.1911-x86_64-boot.iso \
      create_iso_in_container.sh \
      iso-input/isolinux.cfg \
      ks.cfg \
+     .bash_profile \
      bootstrap.sh \
      packages.txt \
      templ_discinfo \
+     templ_comps.xml \
      templ_media.repo \
      templ_treeinfo /root/ 
 
