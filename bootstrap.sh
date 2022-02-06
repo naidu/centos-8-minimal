@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -e
 # 2019'10, gokhan@kylone.com
 
 #
@@ -30,6 +30,7 @@ pw="$(pwd)"
 dp="${pw}/image"
 md="${pw}/mtemp"
 bo="${dp}/BaseOS"
+ap="${dp}/AppStream"
 
 function cmusage() {
    echo "Usage: ${0} <run [force] | clean | debug [package [package ..]] | step ..>"
@@ -148,6 +149,7 @@ function cmcreatetemplate() {
    echo -n "."
    mkdir -p "${dp}"
    mkdir -p "${bo}/Packages"
+   mkdir -p "${ap}/Packages"
    echo -n "."
    cp -r "${md}/EFI" "${dp}/"
    cmcheck
@@ -155,8 +157,10 @@ function cmcreatetemplate() {
    
    cp "templ_discinfo" "${dp}/.discinfo"
    cp "templ_media.repo" "${dp}/media.repo"
+   cp "ks.cfg" "${dp}/"
    echo -n "."
    cp -r "${md}/isolinux" "${dp}/"
+   yes | cp -fr isolinux.cfg "${dp}/isolinux/" 
    echo -n "."
    cp -r "${md}/images" "${dp}/"
    cmcheck
@@ -371,7 +375,7 @@ function rpmdownload() {
             echo "${f}"
             continue
          fi
-         curl -s "${u}" -o "rpms/${f}"
+         curl -L -s "${u}" -o "rpms/${f}"
          if [ "${?}" == "0" ]; then
             if [ "$(file "rpms/${f}" | grep "RPM ")" != "" ]; then
                echo "${u}" >> .dlrpm
@@ -415,6 +419,30 @@ function cmrpmname() {
       sort | uniq
 }
 
+function cmcopyrpmtorepo() {
+   # input argument
+   # package 
+   vb="${CMVERBOSE}"
+   if [ "${1}" == "" ]; then
+     echo "Usage: ${0} step copyrpmtorepo <package>"
+     echo
+     exit 1
+   fi
+   rpmurl="$(grep ${1} ${pw}/.urls)"
+   case $rpmurl in
+     *BaseOS*)
+       if [ -d "${bo}/Packages" ]; then
+         cp "rpms/${1}" "${bo}/Packages/"
+       fi
+       ;;
+     *)
+       if [ -d "${ap}/Packages" ]; then
+         cp "rpms/${1}" "${ap}/Packages/"
+       fi
+       ;;
+   esac
+}
+
 function cmcollectrpm() {
    # input arguments
    # package [package ..]
@@ -431,9 +459,7 @@ function cmcollectrpm() {
       mkdir -p rpms
       echo "${rr}" | while read r; do
          if [ -e "rpms/${r}" ]; then
-            if [ -d "${bo}/Packages" ]; then
-               cp "rpms/${r}" "${bo}/Packages/"
-            fi
+            cmcopyrpmtorepo ${r}
             if [ "${vb}" != "" ]; then
                echo "     cached: ${r}"
             else
@@ -465,18 +491,14 @@ function cmcollectrpm() {
             else
                echo "${dd}" | while read d; do
                   if [ "${d}" != "${r}" ]; then
-                     if [ -d "${bo}/Packages" ]; then
-                        cp "rpms/${d}" "${bo}/Packages/"
-                     fi
+                     cmcopyrpmtorepo ${d}
                      if [ "${vb}" != "" ]; then
                         echo " dowmloaded: ${r} -> ${d}, ${pk}"
                      else
                         echo -n ":"
                      fi
                   else
-                     if [ -d "${bo}/Packages" ]; then
-                        cp "rpms/${d}" "${bo}/Packages/"
-                     fi
+                     cmcopyrpmtorepo ${d}
                      if [ "${vb}" == "" ]; then
                         echo -n ":"
                      fi
@@ -518,29 +540,56 @@ function cmcreaterepo() {
       echo
       exit 1
    fi
-   tp="$(cat "${pw}/packages.txt" | grep -v "^#" | grep -v "^$" | wc -l)"
-   echo -n " ~ Creating component list for ${tp} add-on package "
-   uc="${pw}/target_comps.xml"
-   rm -f "${uc}"
-   touch "${uc}"
-   while IFS=  read xl; do
-      if [ "${xl}" == "" ]; then
-         cat "${pw}/packages.txt" | grep -v "^#" | grep -v "^$" | while read line; do
-            echo "      <packagereq type=\"default\">${line}</packagereq>" >> "${uc}"
-            echo -n "."
-         done
-      else
-         echo "${xl}" >> "${uc}"
-      fi
-   done < "${pw}/templ_comps.xml"
-   echo " done"
+
+   ##
+   # TODO: refactor to generate comps.xml dynamically 
+   ##
+   #
+   # tp="$(cat "${pw}/packages.txt" | grep -v "^#" | grep -v "^$" | wc -l)"
+   # echo -n " ~ Creating component list for ${tp} add-on package "
+   # uc="${pw}/target_comps.xml"
+   # rm -f "${uc}"
+   # touch "${uc}"
+   # while IFS=  read xl; do
+   #    echo "xl => ${xl}"
+   #    if [ "${xl}" == "" ]; then
+   #       cat "${pw}/packages.txt" | grep -v "^#" | grep -v "^$" | while read line; do
+   #          echo "      <packagereq type=\"default\">${line}</packagereq>"
+   #          echo "      <packagereq type=\"default\">${line}</packagereq>" >> "${uc}"
+   #          echo -n "."
+   #       done
+   #    else
+   #       echo "${xl}" >> "${uc}"
+   #    fi
+   # done < "${pw}/templ_comps.xml"
+   # echo " done"
+
    echo " ~ Creating repodata "
    cd "${bo}"
    cmcheck
    rm -rf repodata
-   createrepo -g "${uc}" . 2>&1 | cmdot
+   wget -O comps.xml "https://vault.centos.org/centos/8/BaseOS/x86_64/os/repodata/2ee4c293f48ab2cf5032d33a52ec6c148fd4bccf1810799e9bf60bde7397b99a-comps-BaseOS.x86_64.xml"
+   createrepo_c --workers 8 -g comps.xml . 2>&1 | cmdot
    cmcheck
    cd "${pw}"
+
+   cd "${ap}"
+   cmcheck
+   rm -rf repodata
+   wget -O comps.xml "https://vault.centos.org/centos/8/AppStream/x86_64/os/repodata/5ea46cc5dfdd4a6f9c181ef29daa4a386e7843080cd625843267860d444df2f3-comps-AppStream.x86_64.xml"
+   createrepo_c --workers 8 -g comps.xml . 2>&1 | cmdot
+   cmcheck
+   cd "${pw}"
+
+   cd "${ap}"
+   URL_PATH_TO_APPSTREAM_MODULES="https://vault.centos.org/centos/8/AppStream/x86_64/os/repodata/"
+   MODULES_FILE_NAME=$(wget -q -O - "$URL_PATH_TO_APPSTREAM_MODULES" | grep -m 1 -o -E "[a-zA-Z0-9]*?-modules.yaml.xz" | head -1)
+   wget -O modules.yaml.xz "${URL_PATH_TO_APPSTREAM_MODULES}${MODULES_FILE_NAME}"
+   xz -d modules.yaml.xz
+   modifyrepo_c --mdtype=modules modules.yaml repodata/
+   cmcheck
+   cd "${pw}"
+
    rm -f "${uc}"
 }
 
