@@ -3,5 +3,5 @@ ethtool
 authselect-compat
 # tcpdump
 # pciutils
-# wget
-# rsync
+wget
+rsync

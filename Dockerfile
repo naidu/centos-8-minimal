@@ -10,8 +10,7 @@ RUN dnf clean all && rm -rf /var/cache/dnf && \
 
 RUN dnf update -y && \
   dnf install -y yum-utils createrepo syslinux genisoimage isomd5sum bzip2 curl file git wget unzip
-COPY iso-input/CentOS-8.1.1911-x86_64-boot.iso \
-     iso-input/bootstrap.zip \
+COPY iso-input/CentOS-Stream.iso \
      create_iso_in_container.sh \
      iso-input/isolinux.cfg \
      ks.cfg \

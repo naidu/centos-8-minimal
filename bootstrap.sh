@@ -12,12 +12,12 @@
 # Default values
 #
 # default official ISO to use
-iso="CentOS-8.1.1911-x86_64-boot.iso"
+iso="CentOS-Stream.iso"
 #
 # resulting ISO file name and volume label
 # such values will be determined again according to source image during ISO mount
-out="CentOS-8.1.1911-x86_64-minimal.iso"
-lbl="CentOS-8-1-1911-x86_64"
+out="CentOS-Stream-Minimal.iso"
+lbl="CentOS-Stream-Minimal"
 #
 # dependency resolving method
 # deep: check dependency of every package one by one
@@ -120,13 +120,13 @@ function cmisomount() {
       mount -o loop "${iso}" "${md}" 2>&1 | cmpipe
       cmcheck
       echo "   ${md} mounted"
-      if [ "$(cat "${md}/isolinux/isolinux.cfg" | grep "CentOS Linux 8")" == "" ]; then
-         cmisounmount
-         echo
-         echo " ! Reference ISO should be one of the CentOS 8 distribution."
-         echo
-         exit
-      fi
+#       if [ "$(cat "${md}/isolinux/isolinux.cfg" | grep "CentOS Linux 8")" == "" ]; then
+#          cmisounmount
+#          echo
+#          echo " ! Reference ISO should be one of the CentOS 8 distribution."
+#          echo
+#          exit
+#       fi
    fi
 }
 
@@ -608,7 +608,7 @@ function cmcreateiso() {
       elif [ "${ver}" == "Stream.8" ]; then
          ver="8.0.20191219"
       fi
-      out="CentOS-${ver}-x86_64-minimal.iso"
+      out="CentOS-x86_64-minimal.iso"
    fi
    echo " ~ Creating ISO image"
    cd "${dp}"
@@ -694,7 +694,7 @@ function cmjobquick() {
 if [ ! -e /etc/centos-release ]; then
    cmnotcentos
 fi
-if [ "$(cat /etc/centos-release | grep "CentOS Linux release 8")" == "" ]; then
+if [ "$(cat /etc/centos-release | grep "CentOS Linux release 8\|CentOS Stream release 8")" == "" ]; then
    cmnotcentos
 fi
 if [ ! -e "/usr/bin/repoquery" -o ! -e "/usr/bin/createrepo" -o ! -e "/usr/bin/yumdownloader" -o ! -e "/usr/bin/curl" -o ! -e "/usr/bin/mkisofs" ]; then
