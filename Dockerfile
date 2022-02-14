@@ -10,8 +10,13 @@ RUN dnf clean all && rm -rf /var/cache/dnf && \
 
 RUN dnf update -y && \
   dnf install -y yum-utils createrepo syslinux genisoimage isomd5sum bzip2 curl file git wget unzip
-COPY iso-input/CentOS-Stream.iso \
-     create_iso_in_container.sh \
+
+RUN curl -L -o /root/CentOS-Stream.iso http://isoredirect.centos.org/centos/8-stream/isos/x86_64/CentOS-Stream-8-x86_64-20220204-boot.iso && \
+  echo $(sha256sum /root/CentOS-Stream.iso)
+
+#COPY iso-input/CentOS-Stream.iso /root/
+
+COPY create_iso_in_container.sh \
      iso-input/isolinux.cfg \
      ks.cfg \
      .bash_profile \
@@ -25,5 +30,5 @@ COPY iso-input/CentOS-Stream.iso \
 USER 0
 WORKDIR $USERHOME
 
-# RUN ./create_iso_in_container.sh
+RUN ./create_iso_in_container.sh
 CMD ["/bin/bash", "-l"]
