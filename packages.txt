@@ -1,5 +1,6 @@
 net-tools
 ethtool
+authselect-compat
 # tcpdump
 # pciutils
 wget

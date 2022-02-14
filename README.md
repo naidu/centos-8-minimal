@@ -26,7 +26,12 @@ Hence, there are two main parts of this project:
 
   You can build the Dockerfile here and run it with a sample command.  Note that to retrieve your ISO after the container has finished creation, you must specify a mount point at `/mnt` during the container's execution in order to retrieve the file.  Additionally, privileged execution is required by the container to mount the ISO during the recreation process.
 
-  Example: `mkdir ./iso-out && docker build -t centos-8-minimal && docker run --privileged -v ./iso-out:/mnt centos-8-minimal` 
+  Perform below steps:
+  ```
+  $ .\launch_docker_and_build_iso.sh
+
+  [root@667f00169f85 ~]# ./create_iso_in_container.sh
+  ```
 
 ### Requirements
 
