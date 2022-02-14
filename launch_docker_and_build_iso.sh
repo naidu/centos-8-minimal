@@ -7,7 +7,7 @@ ISO_OUTPUT_FOLDER=iso-out
 DOCKER_INSTANACE_NAME="build-centos-8-minimal-iso"
 
 CENTOS_BASE_IMAGE_NAME="CentOS-Stream.iso"
-CENTOS_BASE_IMAGE_URL="http://isoredirect.centos.org/centos/8-stream/isos/x86_64/CentOS-Stream-8-x86_64-20220204-boot.iso"
+CENTOS_BASE_IMAGE_URL="http://isoredirect.centos.org/centos/8-stream/isos/x86_64/CentOS-Stream-8-x86_64-latest-boot.iso"
 
 docker rm ${DOCKER_INSTANACE_NAME}
 docker rmi centos-8-minimal centos:8 
