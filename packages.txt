@@ -5,3 +5,4 @@ authselect-compat
 # pciutils
 wget
 rsync
+docker-ce

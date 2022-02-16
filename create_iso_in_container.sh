@@ -1,6 +1,6 @@
 #!/bin/bash 
 
-CMISO="$1"  ./bootstrap.sh clean
+CMISO="$1" ./bootstrap.sh clean
 CMISO="$1" ./bootstrap.sh step isomount
 CMISO="$1" ./bootstrap.sh step createtemplate
 CMISO="$1" ./bootstrap.sh step scandeps

@@ -400,8 +400,8 @@ function cmrpmurl() {
       echo 
       exit 1
    fi
-   yumdownloader --urlprotocol http --urls "${@}" | \
-      grep "^http" | \
+   yumdownloader --urlprotocol https --urls "${@}" | \
+      grep "^https" | \
       sort | uniq > "${pw}/.urls"
 }
 
