@@ -14,10 +14,10 @@ RUN dnf update -y && \
 RUN dnf config-manager --add-repo=https://download.docker.com/linux/centos/docker-ce.repo && \
   dnf update -y
 
-RUN curl -L -o /root/CentOS-Stream.iso http://isoredirect.centos.org/centos/8-stream/isos/x86_64/CentOS-Stream-8-x86_64-latest-boot.iso && \
-  echo $(sha256sum /root/CentOS-Stream.iso)
+# RUN curl -L -o /root/CentOS-Stream.iso http://isoredirect.centos.org/centos/8-stream/isos/x86_64/CentOS-Stream-8-x86_64-latest-boot.iso && \
+#   echo $(sha256sum /root/CentOS-Stream.iso)
 
-#COPY iso-input/CentOS-Stream.iso /root/
+COPY iso-input/CentOS-Stream.iso /root/
 
 COPY create_iso_in_container.sh \
      iso-input/isolinux.cfg \
