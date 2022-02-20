@@ -26,12 +26,15 @@ COPY create_iso_in_container.sh \
      bootstrap.sh \
      packages.txt \
      templ_discinfo \
-     templ_comps.xml \
      templ_media.repo \
+     # Backup of downloaded rpms
+     temp \
+     # Downloaded xmls for repo 
+     iso-input/repo/base_comps.xml iso-input/repo/appstream_comps.xml iso-input/repo/modules.yaml.xz \
      templ_treeinfo /root/ 
 
 USER 0
 WORKDIR $USERHOME
 
 #RUN ./create_iso_in_container.sh
-CMD ["/bin/bash", "-l"]
+CMD ["/bin/bash"]

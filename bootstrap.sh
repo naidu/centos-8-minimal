@@ -271,9 +271,9 @@ function cmcreatelist() {
    echo -n " ~ Creating package list "
    rm -f .core
    echo -n "."
-   cat templ_comps.xml | grep packagereq | awk -F">" {'print $2'} | awk -F"<" {'print $1'} > .core
+   dnf group info $(grep "^@" packages.txt | sed "s/^@//") | grep -v ':' | tr -s ' ' > .core 
    echo -n "."
-   cat packages.txt | grep -v "^#" | grep -v "^$" >> .core
+   cat packages.txt | grep -v "^@" | grep -v "^#" | grep -v "^$" >> .core
    echo " done"
    tp="$(cat .core | sort | uniq | wc -l)"
    echo " ~ Resolving dependencies for ${tp} package(s)"
@@ -526,6 +526,7 @@ function cmcollectrpms() {
    fi
    rm -f .miss .rslv .dler
    mkdir -p rpms
+   [ -d "rpms.cache" ] && cp rpms.cache/* rpms/
    cmcollectrpm $(cat .pkgs | sort | uniq | tr "\n" " ")
    if [ "${CMVERBOSE}" == "" ]; then
       echo " done"
@@ -568,7 +569,7 @@ function cmcreaterepo() {
    cd "${bo}"
    cmcheck
    rm -rf repodata
-   wget -O comps.xml "https://vault.centos.org/centos/8/BaseOS/x86_64/os/repodata/2ee4c293f48ab2cf5032d33a52ec6c148fd4bccf1810799e9bf60bde7397b99a-comps-BaseOS.x86_64.xml"
+   cp "${pw}"/base_comps.xml comps.xml
    createrepo_c --workers 8 -g comps.xml . 2>&1 | cmdot
    cmcheck
    cd "${pw}"
@@ -576,15 +577,13 @@ function cmcreaterepo() {
    cd "${ap}"
    cmcheck
    rm -rf repodata
-   wget -O comps.xml "https://vault.centos.org/centos/8/AppStream/x86_64/os/repodata/5ea46cc5dfdd4a6f9c181ef29daa4a386e7843080cd625843267860d444df2f3-comps-AppStream.x86_64.xml"
+   cp "${pw}"/appstream_comps.xml comps.xml
    createrepo_c --workers 8 -g comps.xml . 2>&1 | cmdot
    cmcheck
    cd "${pw}"
 
    cd "${ap}"
-   URL_PATH_TO_APPSTREAM_MODULES="https://vault.centos.org/centos/8/AppStream/x86_64/os/repodata/"
-   MODULES_FILE_NAME=$(wget -q -O - "$URL_PATH_TO_APPSTREAM_MODULES" | grep -m 1 -o -E "[a-zA-Z0-9]*?-modules.yaml.xz" | head -1)
-   wget -O modules.yaml.xz "${URL_PATH_TO_APPSTREAM_MODULES}${MODULES_FILE_NAME}"
+   cp "${pw}"/modules.yaml.xz .
    xz -d modules.yaml.xz
    modifyrepo_c --mdtype=modules modules.yaml repodata/
    cmcheck
@@ -600,6 +599,15 @@ function cmcreateiso() {
       echo
       exit 1
    fi
+
+   if [[ -f .miss && $(wc -l < .miss) -ge 1 ]]; then
+      echo " ! Below packages failed to get downloaded;"
+      echo "   $(cat .miss)"
+      echo "   Please fix them before proceeding to build the iso"
+      echo 
+      exit 1 
+   fi
+
    lbl="$(cat "${dp}/isolinux/isolinux.cfg" | grep "LABEL=" | awk -F"LABEL=" {'print $2'} | awk {'print $1'} | grep -v "^$" | head -1 | tr -d "\n\r")"
    if [ "${CMOUT}" == "" ]; then
       ver="$(cat "${dp}/isolinux/isolinux.cfg" | grep "LABEL=CentOS" | head -1 | awk -F"LABEL=CentOS-" {'print $2'} | awk -F"-x86_64" {'print $1'} | sed 's/\-/\./g')"
