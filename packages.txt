@@ -21,14 +21,27 @@ cockpit
 python3-devel
 python38 make
 ruby ruby-devel
-gcc-
+gcc
 c++
 cockpit-machines
 cockpit-networkmanager
 cockpit-packagekit
 cockpit-storaged openvpn
 epel-release
-rsync genisoimage pykickstart isomd5sum make python2 gcc yum-utils createrepo syslinux bzip2 curl file sshpass
+rsync
+genisoimage
+pykickstart
+isomd5sum
+make
+python2
+gcc
+yum-utils
+createrepo
+syslinux
+bzip2
+curl
+file
+sshpass
 perl
 python3-devel
 python38
