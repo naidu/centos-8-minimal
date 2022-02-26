@@ -5,6 +5,49 @@ authselect-compat
 wget
 rsync
 
+yum-utils
+debootstrap
+qemu-img
+git
+e2fsprogs
+policycoreutils-python-utils
+ipa-client
+freeipa-client
+ipa-admintools
+perl
+tpm-tools
+yum-utils
+cockpit
+python3-devel
+python38 make
+ruby ruby-devel
+gcc-
+c++
+cockpit-machines
+cockpit-networkmanager
+cockpit-packagekit
+cockpit-storaged openvpn
+epel-release
+rsync genisoimage pykickstart isomd5sum make python2 gcc yum-utils createrepo syslinux bzip2 curl file sshpass
+perl
+python3-devel
+python38
+make
+ruby
+ruby-devel
+gcc-c++
+mysql-devel
+nodejs
+mysql-server
+unzip
+gcc
+openssl-devel
+docker-ce
+docker-ce-cli
+containerd.io
+tar
+tpm-tools
+httpdopenstack-kolla
 ruby
 unzip
 virt-install
