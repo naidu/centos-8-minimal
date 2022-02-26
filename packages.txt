@@ -60,7 +60,8 @@ docker-ce-cli
 containerd.io
 tar
 tpm-tools
-httpdopenstack-kolla
+httpd
+openstack-kolla
 ruby
 unzip
 virt-install
