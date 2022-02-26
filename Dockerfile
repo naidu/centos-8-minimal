@@ -9,7 +9,8 @@ RUN find /etc/yum.repos.d -type f -exec sed -i 's/mirrorlist=http/\#mirrorlist=h
   find /etc/yum.repos.d -type f -exec sed -i 's|baseurl=http://mirror.centos.org|baseurl=https://vault.centos.org|g' {} \;
 
 RUN dnf update -y && \
-  dnf install -y yum-utils createrepo syslinux genisoimage isomd5sum bzip2 curl file git wget unzip
+  dnf install https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm \
+  dnf install -y p7zip p7zip-plugins yum-utils createrepo syslinux genisoimage isomd5sum bzip2 curl file git wget unzip
 
 RUN dnf config-manager --add-repo=https://download.docker.com/linux/centos/docker-ce.repo && \
   dnf update -y
