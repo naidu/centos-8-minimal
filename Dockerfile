@@ -18,9 +18,6 @@ RUN dnf install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.n
 RUN dnf config-manager --add-repo=https://download.docker.com/linux/centos/docker-ce.repo && \
   dnf update -y
 
-RUN sudo dnf install https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm -y
-RUN dnf install p7zip p7zip-plugins -y
-
 # RUN curl -L -o /root/CentOS-Stream.iso http://isoredirect.centos.org/centos/8-stream/isos/x86_64/CentOS-Stream-8-x86_64-latest-boot.iso && \
 #   echo $(sha256sum /root/CentOS-Stream.iso)
 
