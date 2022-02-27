@@ -343,6 +343,16 @@ function cmrpmdownload() {
    done
 }
 
+function rpmdownloadusingdnf() {
+   if [ "${1}" == "" ]; then
+      echo " ! Pacakge name required for rpmdownloadusingdnf"
+      echo 
+      exit 1
+   fi
+   mkdir -p rpms
+   dnf download --arch=noarch,x86_64 --releasever=8 --installroot=/ --resolve --alldeps --destdir=/root/rpms ${@} -x \*i686
+}
+
 function rpmdownload() {
    # input arguments
    # package [package ..]
@@ -354,9 +364,8 @@ function rpmdownload() {
    ul="${CMURL}"
    mkdir -p rpms
    if [ "${ul}" == "" ]; then
-      #dnf download -v --arch=noarch,x86_64 --releasever=8 --installroot=rpms --resolve --alldeps --destdir=temp/ ${@} -x \*i686
       ul="$(yumdownloader --urlprotocol http --urls "${@}" 2>/dev/null | \
-            grep "^http" | \
+            grep "^https" | \
             sort | uniq)"
    fi
    echo "${ul}" | while read u; do
@@ -448,6 +457,32 @@ function cmcopyrpmtorepo() {
    esac
 }
 
+function cmcollectrpmusingdnf() {
+   vb="${CMVERBOSE}"
+   if [ "${CMSTEP}" != "" -a "${1}" == "" ]; then
+      echo "Usage: ${0} step collectrpmusingdnf <package> [package ..]"
+      echo 
+      exit 1
+   fi
+   cmrpmurl "${@}"
+   pkglist="${@}"
+   if [ "${pkglist}" != "" ]; then
+      echo "${pkglist}" | while read pk; do
+         if [ -e "rpms/${pk}" ]; then
+            cmcopyrpmtorepo ${pk}
+            if [ "${vb}" != "" ]; then
+               echo "     cached: ${pk}"
+            else
+               echo -n "."
+            fi
+         else
+            echo; echo "downloading: ${pk}"; echo
+            rpmdownloadusingdnf "${pk}"
+         fi
+      done
+   fi
+}
+
 function cmcollectrpm() {
    # input arguments
    # package [package ..]
@@ -482,12 +517,13 @@ function cmcollectrpm() {
                rp="$(echo "${r}" | awk -F".rpm" {'print $1'})"
                pk="$(dnf info "${rp}" | grep "^Name" | awk -F": " {'print $2'} | sort | uniq)"
             fi
+            # set -x
             if [ "${vb}" != "" ]; then
-               echo "downloading: ${pk}, ${r}"
+               echo; echo "downloading: ${pk}, ${r}"; echo
             fi
             dd="$(CMURL="${fu}" rpmdownload "${pk}")"
             if [ "${dd}" == "" ]; then
-               echo "${pk}:${r}:<none>" >> .miss
+               echo "${pk}:${r}:<none>" >> .miss            # TODO
                if [ "${vb}" != "" ]; then
                   echo "  not found: ${r} (${pk})"
                else
@@ -510,6 +546,7 @@ function cmcollectrpm() {
                   fi
                done
             fi
+            # set +x
          fi
       done
    else
@@ -534,7 +571,8 @@ function cmcollectrpms() {
    rm -f .miss .rslv .dler
    mkdir -p rpms
    [ -d "rpms.cache" ] && cp rpms.cache/* rpms/ || true
-   cmcollectrpm $(cat .pkgs | sort | uniq | tr "\n" " ")
+   # cmcollectrpm $(cat .pkgs | sort | uniq | tr "\n" " ")
+   cmcollectrpmusingdnf $(cat .pkgs | sort | uniq | tr "\n" " ")
    if [ "${CMVERBOSE}" == "" ]; then
       echo " done"
    fi

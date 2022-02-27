@@ -50,7 +50,6 @@ qemu-kvm
 libffi-devel
 gcc
 openssl-devel
-python3-devel
 python38
 chrony
 postgresql-devel
