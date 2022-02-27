@@ -1,4 +1,4 @@
-#!/bin/bash 
+#!/bin/bash -e
 
 CMISO="$1" ./bootstrap.sh clean
 CMISO="$1" ./bootstrap.sh step isomount
