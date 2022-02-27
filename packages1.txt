@@ -1,0 +1,10 @@
+nodejs
+gcc-c++
+isomd5sum
+ruby
+ruby-devel
+e2fsprogs
+policycoreutils-python-utils
+ipa-client
+freeipa-client
+ipa-admintools
