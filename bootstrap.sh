@@ -92,8 +92,8 @@ function cmdot() {
 function cmisounmount() {
    if [ -d "${md}" ]; then
       echo -n " ~ unmount ISO .."
-      umount "${md}" 2>/dev/null
-      rmdir "${md}"
+      umount "${md}" 2>/dev/null || true
+      rm -rf "${md}"
       echo " done"
    fi
 }
@@ -117,16 +117,10 @@ function cmisomount() {
    echo " ~ mount ISO "
    if [ ! -d "${md}" ]; then
       mkdir -p "${md}"
-      mount -o loop "${iso}" "${md}" 2>&1 | cmpipe
+      7z x -y "${iso}" -o"${md}"/ || exit 1
+      #mount -o loop "${iso}" "${md}" 2>&1 | cmpipe
       cmcheck
       echo "   ${md} mounted"
-#       if [ "$(cat "${md}/isolinux/isolinux.cfg" | grep "CentOS Linux 8")" == "" ]; then
-#          cmisounmount
-#          echo
-#          echo " ! Reference ISO should be one of the CentOS 8 distribution."
-#          echo
-#          exit
-#       fi
    fi
 }
 
@@ -250,7 +244,7 @@ function cmfulldeps() {
    if [ "${1}" == "" ]; then
       echo "Usage: ${0} step fulldeps <package> [package ..]"
       echo
-      exit
+      exit 1
    fi
    rm -f ".pkgs" ".tree"
    touch ".pkgs" ".tree"
@@ -274,6 +268,10 @@ function cmcreatelist() {
    dnf group info $(grep "^@" packages.txt | sed "s/^@//") | grep -v ':' | tr -s ' ' > .core 
    echo -n "."
    cat packages.txt | grep -v "^@" | grep -v "^#" | grep -v "^$" >> .core
+
+   # package rhc part of @core is not being able to get downloaded.  Therefore omitting it 
+   sed -i '/rhc/d' .core
+
    echo " done"
    tp="$(cat .core | sort | uniq | wc -l)"
    echo " ~ Resolving dependencies for ${tp} package(s)"
@@ -354,12 +352,13 @@ function rpmdownload() {
       exit 1
    fi
    ul="${CMURL}"
+   mkdir -p rpms
    if [ "${ul}" == "" ]; then
+      #dnf download -v --arch=noarch,x86_64 --releasever=8 --installroot=rpms --resolve --alldeps --destdir=temp/ ${@} -x \*i686
       ul="$(yumdownloader --urlprotocol http --urls "${@}" 2>/dev/null | \
             grep "^http" | \
             sort | uniq)"
    fi
-   mkdir -p rpms
    echo "${ul}" | while read u; do
       if [ "${u}" != "" ]; then
          f=`echo "${u}" | awk -F"/" {'print $NF'}`
@@ -403,6 +402,12 @@ function cmrpmurl() {
    yumdownloader --urlprotocol https --urls "${@}" | \
       grep "^https" | \
       sort | uniq > "${pw}/.urls"
+   
+   [ ! -f ${pw}/.urls ] && {
+      echo "Not all dependent packages found.  Please fix before proceeding !!"
+      echo
+      exit 1
+   } || true
 }
 
 function cmrpmname() {
@@ -512,6 +517,8 @@ function cmcollectrpm() {
       args="${@}"
       if [ "${args}" != "" ]; then
          echo " unresolved: ${args}"
+         echo
+         exit 0
       else
          echo -n "!"
       fi
@@ -526,7 +533,7 @@ function cmcollectrpms() {
    fi
    rm -f .miss .rslv .dler
    mkdir -p rpms
-   [ -d "rpms.cache" ] && cp rpms.cache/* rpms/
+   [ -d "rpms.cache" ] && cp rpms.cache/* rpms/ || true
    cmcollectrpm $(cat .pkgs | sort | uniq | tr "\n" " ")
    if [ "${CMVERBOSE}" == "" ]; then
       echo " done"
@@ -541,29 +548,6 @@ function cmcreaterepo() {
       echo
       exit 1
    fi
-
-   ##
-   # TODO: refactor to generate comps.xml dynamically 
-   ##
-   #
-   # tp="$(cat "${pw}/packages.txt" | grep -v "^#" | grep -v "^$" | wc -l)"
-   # echo -n " ~ Creating component list for ${tp} add-on package "
-   # uc="${pw}/target_comps.xml"
-   # rm -f "${uc}"
-   # touch "${uc}"
-   # while IFS=  read xl; do
-   #    echo "xl => ${xl}"
-   #    if [ "${xl}" == "" ]; then
-   #       cat "${pw}/packages.txt" | grep -v "^#" | grep -v "^$" | while read line; do
-   #          echo "      <packagereq type=\"default\">${line}</packagereq>"
-   #          echo "      <packagereq type=\"default\">${line}</packagereq>" >> "${uc}"
-   #          echo -n "."
-   #       done
-   #    else
-   #       echo "${xl}" >> "${uc}"
-   #    fi
-   # done < "${pw}/templ_comps.xml"
-   # echo " done"
 
    echo " ~ Creating repodata "
    cd "${bo}"
