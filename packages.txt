@@ -63,3 +63,11 @@ unzip
 virt-install
 wget
 yum-utils
+
+kernel-devel
+ftp
+open-vm-tools
+xorg-x11-drv-vmware
+#mesa-livxatracker
+grub2-pc
+grub2-pc-modules

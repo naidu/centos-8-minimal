@@ -485,6 +485,14 @@ function cmcollectrpmusingdnf() {
       exit 1
    fi
    cmrpmurlusingdnf "${@}"
+
+   pkglist="${@}"
+   if [ "${pkglist}" != "" ]; then
+      echo "${pkglist}" | while read pk; do
+         rpmdownloadusingdnf "${pk}"
+      done
+   fi
+
    dl="$(cat "${pw}/.urls")"
    rr="$(echo "${dl}" | awk -F"/" {'print $NF'} | sort | uniq)"
    if [ "${rr}" != "" ]; then
