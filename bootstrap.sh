@@ -350,7 +350,8 @@ function rpmdownloadusingdnf() {
       exit 1
    fi
    mkdir -p rpms
-   dnf download --arch=noarch,x86_64 --releasever=8 --installroot=/ --resolve --alldeps --destdir=/root/rpms ${@} -x \*i686
+   pkg="$(echo "${@}" | rev | cut -d/ -f1 | cut -d- -f3- | rev)"
+   dnf download --arch=noarch,x86_64 --releasever=8 --installroot=/ --resolve --alldeps --destdir=/root/rpms ${pkg} -x \*i686
 }
 
 function rpmdownload() {
@@ -398,6 +399,25 @@ function rpmdownload() {
          fi
       fi
    done
+}
+
+function cmrpmurlusingdnf() {
+   # input arguments
+   # package [package ..]
+   if [ "${CMSTEP}" != "" -a "${1}" == "" ]; then
+      echo "Usage: ${0} step rpmurlusingdnf <package> [package ..]"
+      echo 
+      exit 1
+   fi
+   dnf download -x \*i686 --urls "${@}" | \
+      grep "^https" | \
+      sort | uniq > "${pw}/.urls"
+   
+   [ ! -f ${pw}/.urls ] && {
+      echo "Not all dependent packages found.  Please fix before proceeding !!"
+      echo
+      exit 1
+   } || true
 }
 
 function cmrpmurl() {
@@ -464,22 +484,48 @@ function cmcollectrpmusingdnf() {
       echo 
       exit 1
    fi
-   cmrpmurl "${@}"
-   pkglist="${@}"
-   if [ "${pkglist}" != "" ]; then
-      echo "${pkglist}" | while read pk; do
-         if [ -e "rpms/${pk}" ]; then
-            cmcopyrpmtorepo ${pk}
+   cmrpmurlusingdnf "${@}"
+   dl="$(cat "${pw}/.urls")"
+   rr="$(echo "${dl}" | awk -F"/" {'print $NF'} | sort | uniq)"
+   if [ "${rr}" != "" ]; then
+      mkdir -p rpms
+      echo "${rr}" | while read r; do
+         if [ -e "rpms/${r}" ]; then
+            cmcopyrpmtorepo ${r}
             if [ "${vb}" != "" ]; then
-               echo "     cached: ${pk}"
+               echo "     cached: ${r}"
             else
                echo -n "."
             fi
          else
-            echo; echo "downloading: ${pk}"; echo
+            pk="$(echo "${r}" | awk -F".el8" {'print $1'} | sed 's/\-[0-9\.\-]\+$//g')"
+            fu="$(echo "${dl}" | grep "/${r}$")"
+            if [ "${fu}" == "" ]; then
+               ir="$(echo "${r}" | sed 's/\.x86_64/\.i686/g')"
+               fu="$(echo "${dl}" | grep "/${ir}$")"
+            fi
+            if [ "$(echo "${fu}" | wc -l)" != "1" ]; then
+               fu=""
+               rp="$(echo "${r}" | awk -F".rpm" {'print $1'})"
+               pk="$(dnf info "${rp}" | grep "^Name" | awk -F": " {'print $2'} | sort | uniq)"
+            fi
+            if [ "${vb}" != "" ]; then
+               echo; echo "downloading: ${pk}, ${r}"; echo
+            fi
             rpmdownloadusingdnf "${pk}"
+            cmcopyrpmtorepo ${r}
          fi
       done
+   else
+      echo "${@}" >> .rslv
+      args="${@}"
+      if [ "${args}" != "" ]; then
+         echo " unresolved: ${args}"
+         echo
+         exit 0
+      else
+         echo -n "!"
+      fi
    fi
 }
 
