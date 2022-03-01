@@ -18,12 +18,10 @@ RUN dnf install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.n
 RUN dnf config-manager --add-repo=https://download.docker.com/linux/centos/docker-ce.repo && \
   dnf update -y
 
-# RUN curl -L -o /root/CentOS-Stream.iso http://isoredirect.centos.org/centos/8-stream/isos/x86_64/CentOS-Stream-8-x86_64-latest-boot.iso && \
-#   echo $(sha256sum /root/CentOS-Stream.iso)
-
-COPY iso-input/CentOS-Stream.iso /root/
+#COPY iso-input/CentOS-Stream.iso /root/
 
 COPY create_iso_in_container.sh \
+     download_files_for_build.sh \
      iso-input/isolinux.cfg \
      ks.cfg \
      .bash_profile \
@@ -31,14 +29,13 @@ COPY create_iso_in_container.sh \
      packages.txt \
      templ_discinfo \
      templ_media.repo \
-     # Backup of downloaded rpms
-    #  temp \
      # Downloaded xmls for repo 
-     iso-input/repo/base_comps.xml iso-input/repo/appstream_comps.xml iso-input/repo/modules.yaml.xz \
+     # iso-input/repo/base_comps.xml iso-input/repo/appstream_comps.xml iso-input/repo/modules.yaml.xz \
      templ_treeinfo /root/ 
 
 USER 0
 WORKDIR $USERHOME
 
-#RUN ./create_iso_in_container.sh
+RUN ./download_files_for_build.sh
+RUN ./create_iso_in_container.sh
 CMD ["/bin/bash"]
