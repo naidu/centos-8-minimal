@@ -520,7 +520,7 @@ function cmcollectrpmusingdnf() {
             if [ "${vb}" != "" ]; then
                echo; echo "downloading: ${pk}, ${r}"; echo
             fi
-            rpmdownloadusingdnf "${pk}"
+            rpmdownloadusingdnf "${r}"
             cmcopyrpmtorepo ${r}
          fi
       done
