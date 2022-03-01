@@ -5,8 +5,8 @@ ENV TERM xterm-256color
 ENV USERHOME=/root
 
 RUN find /etc/yum.repos.d -type f -exec sed -i 's/mirrorlist=http/\#mirrorlist=http/g' {} \; && \
-  find /etc/yum.repos.d -type f -exec sed -i 's|#baseurl=http://mirror.centos.org|baseurl=https://vault.centos.org|g' {} \; && \
-  find /etc/yum.repos.d -type f -exec sed -i 's|baseurl=http://mirror.centos.org|baseurl=https://vault.centos.org|g' {} \;
+  find /etc/yum.repos.d -type f -exec sed -i 's|#baseurl=http://mirror.centos.org|baseurl=https://vault.epel.cloud|g' {} \; && \
+  find /etc/yum.repos.d -type f -exec sed -i 's|baseurl=http://mirror.centos.org|baseurl=https://vault.epel.cloud|g' {} \;
 
 RUN dnf update -y && \
   dnf install -y yum-utils createrepo syslinux genisoimage isomd5sum bzip2 curl file git wget unzip
