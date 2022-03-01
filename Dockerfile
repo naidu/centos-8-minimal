@@ -32,7 +32,7 @@ COPY create_iso_in_container.sh \
      templ_discinfo \
      templ_media.repo \
      # Backup of downloaded rpms
-     temp \
+    #  temp \
      # Downloaded xmls for repo 
      iso-input/repo/base_comps.xml iso-input/repo/appstream_comps.xml iso-input/repo/modules.yaml.xz \
      templ_treeinfo /root/ 
