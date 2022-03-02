@@ -47,7 +47,6 @@ postgresql-devel
 postgresql-libs
 pykickstart
 python2
-python38
 python3-devel
 qemu-img
 qemu-kvm
