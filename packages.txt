@@ -9,9 +9,10 @@ cockpit-networkmanager
 cockpit-packagekit
 cockpit-storaged openvpn
 containerd.io
-createrepo
+createrepo_c
 curl
 debootstrap
+dhclient
 docker-ce
 docker-ce-cli
 e2fsprogs
@@ -35,6 +36,8 @@ libxslt-devel
 make
 mysql-devel
 mysql-server
+net-snmp
+network-scripts
 net-tools
 nodejs
 openssl
@@ -56,8 +59,10 @@ ruby-devel
 sqlite-devel
 sshpass
 syslinux
+telnet
 tar
 tpm-tools
+traceroute
 unzip
 virt-install
 wget

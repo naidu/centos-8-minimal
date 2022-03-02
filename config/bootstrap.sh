@@ -152,6 +152,7 @@ function cmcreatetemplate() {
    cp "templ_discinfo" "${dp}/.discinfo"
    cp "templ_media.repo" "${dp}/media.repo"
    cp "ks.cfg" "${dp}/"
+   cp -r "ks_configs" "${dp}/"
    echo -n "."
    cp -r "${md}/isolinux" "${dp}/"
    yes | cp -fr isolinux.cfg "${dp}/isolinux/" 

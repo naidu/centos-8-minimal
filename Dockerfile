@@ -23,15 +23,10 @@ RUN dnf config-manager --add-repo=https://download.docker.com/linux/centos/docke
 COPY create_iso_in_container.sh \
      download_files_for_build.sh \
      iso-input/isolinux.cfg \
-     ks.cfg \
-     .bash_profile \
-     bootstrap.sh \
-     packages.txt \
-     templ_discinfo \
-     templ_media.repo \
+     config \
      # Downloaded xmls for repo 
-     # iso-input/repo/base_comps.xml iso-input/repo/appstream_comps.xml iso-input/repo/modules.yaml.xz \
-     templ_treeinfo /root/ 
+     #iso-input/repo \
+     packages.txt /root/ 
 
 USER 0
 WORKDIR $USERHOME
