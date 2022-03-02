@@ -71,3 +71,6 @@ xorg-x11-drv-vmware
 #mesa-livxatracker
 grub2-pc
 grub2-pc-modules
+
+cockpit-storaged
+openvpn
