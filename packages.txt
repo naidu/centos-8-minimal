@@ -29,6 +29,7 @@ grub2
 httpd
 ipa-admintools
 ipa-client
+iptables-services
 isomd5sum
 libffi-devel
 libxml2-devel
