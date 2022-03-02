@@ -47,7 +47,7 @@ postgresql-devel
 postgresql-libs
 pykickstart
 python2
-python3-devel
+#python3-devel
 qemu-img
 qemu-kvm
 rsync
