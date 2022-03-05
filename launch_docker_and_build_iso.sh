@@ -30,6 +30,6 @@ pushd ${ISO_INPUT_FOLDER}/repo
 popd
 
 mkdir -p ./${ISO_OUTPUT_FOLDER}  
-docker image build --tag centos-8-minimal -f Dockerfile .  
+DOCKER_BUILDKIT=1 docker image build --no-cache --tag centos-8-minimal -f Dockerfile .  
 
-docker container run --privileged --name ${DOCKER_INSTANACE_NAME} -it -v "$(pwd)/${ISO_OUTPUT_FOLDER}:/mnt" centos-8-minimal ./create_iso_in_container.sh
+docker container run --privileged --name ${DOCKER_INSTANACE_NAME} -it -v "$(pwd)/${ISO_OUTPUT_FOLDER}:/mnt" centos-8-minimal #./create_iso_in_container.sh

@@ -626,8 +626,18 @@ function cmcollectrpms() {
    rm -f .miss .rslv .dler
    mkdir -p rpms
    [ -d "rpms.cache" ] && cp rpms.cache/* rpms/ || true
-   # cmcollectrpm $(cat .pkgs | sort | uniq | tr "\n" " ")
-   cmcollectrpmusingdnf $(cat .pkgs | sort | uniq | tr "\n" " ")
+
+   dnf groupinstall --downloadonly -y --allowerasing --releasever=/ --installroot=/ --destdir=/root/rpms/ $(grep "^@" packages.txt | sed "s/^@//") -x \*i686 $(grep "^-" packages.txt | sed "s/^-/-x /") 
+   dnf download --arch=noarch,x86_64 --allowerasing --releasever=/ --installroot=/ --resolve --alldeps --destdir=/root/rpms/ $(grep -v "^#" packages.txt | grep -v "^@" | grep -v "^-") -x \*i686
+
+   dnf download -x \*i686 --urls $(ls rpms | sed 's/\-[0-9].*//g') | grep 'http:' > .urls
+   echo "$(ls rpms | sort | uniq)" | while read r; do
+      if [ -e "rpms/${r}" ]; then
+         cmcopyrpmtorepo ${r}
+      fi
+   done
+
+   #cmcollectrpmusingdnf $(cat .pkgs | sort | uniq | tr "\n" " ")
    if [ "${CMVERBOSE}" == "" ]; then
       echo " done"
    fi
