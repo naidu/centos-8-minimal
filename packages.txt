@@ -1,4 +1,5 @@
 @core
+@base
 
 audispd-plugins
 bind-utils
