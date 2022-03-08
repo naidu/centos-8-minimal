@@ -352,7 +352,7 @@ function rpmdownloadusingdnf() {
    fi
    mkdir -p rpms
    pkg="$(echo "${@}" | rev | cut -d/ -f1 | cut -d- -f3- | rev)"
-   dnf download --arch=noarch,x86_64 --releasever=8 --installroot=/ --resolve --alldeps --destdir=/root/rpms ${pkg} -x \*i686
+   dnf download --arch=noarch,x86_64 --releasever=8 --installroot=/root/temp/ --resolve --alldeps --destdir=/root/rpms ${pkg} -x \*i686
 }
 
 function rpmdownload() {
@@ -463,7 +463,11 @@ function cmcopyrpmtorepo() {
      echo
      exit 1
    fi
+   rpmurl="http://mirror.pulsant.com/sites/centos/8-stream/AppStream/x86_64/os/Packages/${1}"  # Default value
    rpmurl="$(grep ${1} ${pw}/.urls)"
+   if [ -z "${rpmurl}" ]; then
+      rpmurl="http://mirror.pulsant.com/sites/centos/8-stream/AppStream/x86_64/os/Packages/${1}"
+   fi
    case $rpmurl in
      *BaseOS*)
        if [ -d "${bo}/Packages" ]; then
@@ -627,10 +631,10 @@ function cmcollectrpms() {
    mkdir -p rpms
    [ -d "rpms.cache" ] && cp rpms.cache/* rpms/ || true
 
-   dnf groupinstall --downloadonly -y --allowerasing --releasever=/ --installroot=/ --destdir=/root/rpms/ $(grep "^@" packages.txt | sed "s/^@//") -x \*i686 $(grep "^-" packages.txt | sed "s/^-/-x /") 
-   dnf download --arch=noarch,x86_64 --allowerasing --releasever=/ --installroot=/ --resolve --alldeps --destdir=/root/rpms/ $(grep -v "^#" packages.txt | grep -v "^@" | grep -v "^-") -x \*i686
+   dnf groupinstall --downloadonly -y --nobest --releasever=8 --installroot=/root/temp/ --destdir=/root/rpms/ $(grep "^@" packages.txt | sed "s/^@//") -x \*i686 $(grep "^-" packages.txt | sed "s/^-/-x /") 
+   dnf download --arch=noarch,x86_64 --releasever=8 --installroot=/root/temp/ --resolve --alldeps --destdir=/root/rpms/ $(grep -v "^#" packages.txt | grep -v "^@" | grep -v "^-") -x \*i686
 
-   dnf download -x \*i686 --urls $(ls rpms | sed 's/\-[0-9].*//g') | grep 'http:' > .urls
+   dnf download --releasever=8 --installroot=/root/temp/ -x \*i686 --urls $(ls rpms | sed 's/\-[0-9].*//g') | grep 'http:' > .urls
    echo "$(ls rpms | sort | uniq)" | while read r; do
       if [ -e "rpms/${r}" ]; then
          cmcopyrpmtorepo ${r}

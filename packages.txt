@@ -1,6 +1,7 @@
 @core
 @base
 
+acl
 audispd-plugins
 bind-utils
 createrepo_c
@@ -16,6 +17,7 @@ nss-pam-ldapd
 oddjob-mkhomedir
 openssl
 openssl-libs
+openssh
 open-vm-tools
 psmisc
 screen
@@ -25,6 +27,8 @@ uriparser
 ipset-service
 wget
 rng-tools
+vi
+python3-dbus
 
 
 -NetworkManager-glib
