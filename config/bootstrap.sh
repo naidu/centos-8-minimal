@@ -463,7 +463,9 @@ function cmcopyrpmtorepo() {
      echo
      exit 1
    fi
-   rpmurl="$(grep ${1} ${pw}/.urls || echo http://mirror.pulsant.com/sites/centos/8-stream/AppStream/x86_64/os/Packages/${1})"
+   
+   rpmurl="$(dnf download --releasever=8 --installroot=/root/temp/ -x \*i686 --urls $(echo ${1} | sed 's/\-[0-9].*//g') | grep 'http:' || echo http://mirror.pulsant.com/sites/centos/8-stream/AppStream/x86_64/os/Packages/${1})"
+   #rpmurl="$(grep ${1} ${pw}/.urls || echo http://mirror.pulsant.com/sites/centos/8-stream/AppStream/x86_64/os/Packages/${1})"
    case $rpmurl in
      *BaseOS*)
        if [ -d "${bo}/Packages" ]; then
@@ -630,7 +632,7 @@ function cmcollectrpms() {
    dnf download --arch=noarch,x86_64 --releasever=8 --installroot=/root/temp/ --resolve --alldeps --destdir=/root/rpms/ $(grep -v "^#" packages.txt | grep -v "^@" | grep -v "^-") -x \*i686
 
 set -x
-   dnf download --arch=noarch,x86_64 --urls --releasever=8 --installroot=/root/temp/ -x \*i686 $(ls rpms | sort | uniq | sed 's/\-[0-9].*//g') | grep 'http:' > .urls
+   # dnf download --arch=noarch,x86_64 --urls --releasever=8 --installroot=/root/temp/ -x \*i686 $(ls rpms | sort | uniq | sed 's/\-[0-9].*//g') | grep 'http:' > .urls
    echo "$(ls rpms | sort | uniq)" | while read r; do
       if [ -e "rpms/${r}" ]; then
          cmcopyrpmtorepo ${r}
