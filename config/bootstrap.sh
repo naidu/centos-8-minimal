@@ -463,11 +463,7 @@ function cmcopyrpmtorepo() {
      echo
      exit 1
    fi
-   rpmurl="http://mirror.pulsant.com/sites/centos/8-stream/AppStream/x86_64/os/Packages/${1}"  # Default value
-   rpmurl="$(grep ${1} ${pw}/.urls)"
-   if [ -z "${rpmurl}" ]; then
-      rpmurl="http://mirror.pulsant.com/sites/centos/8-stream/AppStream/x86_64/os/Packages/${1}"
-   fi
+   rpmurl="$(grep ${1} ${pw}/.urls || echo http://mirror.pulsant.com/sites/centos/8-stream/AppStream/x86_64/os/Packages/${1})"
    case $rpmurl in
      *BaseOS*)
        if [ -d "${bo}/Packages" ]; then
