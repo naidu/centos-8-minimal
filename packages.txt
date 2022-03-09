@@ -1,38 +1,10 @@
-net-tools
-ethtool
-authselect-compat
-# tcpdump
-# pciutils
-wget
-rsync
+@base
+@core
+@standard
 
-ruby
-unzip
-virt-install
-qemu-kvm
-libffi-devel
-gcc
-openssl-devel
-git
-python3-devel
-python38
-chrony
-make
-python2
-gcc-c++
-ruby
-ruby-devel
-mysql-devel
-postgresql-devel
-postgresql-libs
-sqlite-devel
-libxslt-devel
-libxml2-devel
-patch
-openssl
-docker-ce
-docker-ce-cli
-containerd.io
-tar
-tpm-tools
-expect
+## Guest Agents 
+hyperv-daemons
+open-vm-tools
+qemu-guest-agent
+
+grub2
