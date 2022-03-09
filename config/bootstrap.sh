@@ -626,11 +626,11 @@ function cmcollectrpms() {
    rm -f .miss .rslv .dler
    mkdir -p rpms
    [ -d "rpms.cache" ] && cp rpms.cache/* rpms/ || true
-set -x
    dnf groupinstall --downloadonly -y --nobest --releasever=8 --installroot=/root/temp/ --destdir=/root/rpms/ $(grep "^@" packages.txt | sed "s/^@//") -x \*i686 $(grep "^-" packages.txt | sed "s/^-/-x /") 
    dnf download --arch=noarch,x86_64 --releasever=8 --installroot=/root/temp/ --resolve --alldeps --destdir=/root/rpms/ $(grep -v "^#" packages.txt | grep -v "^@" | grep -v "^-") -x \*i686
 
-   dnf download --releasever=8 --installroot=/root/temp/ -x \*i686 --urls $(ls rpms | sed 's/\-[0-9].*//g') | grep 'http:' > .urls
+set -x
+   dnf download --arch=noarch,x86_64 --urls --releasever=8 --installroot=/root/temp/ -x \*i686 $(ls rpms | sort | uniq | sed 's/\-[0-9].*//g') | grep 'http:' > .urls
    echo "$(ls rpms | sort | uniq)" | while read r; do
       if [ -e "rpms/${r}" ]; then
          cmcopyrpmtorepo ${r}
