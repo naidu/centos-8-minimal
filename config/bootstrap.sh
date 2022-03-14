@@ -1,5 +1,4 @@
 #!/bin/bash -e
-# 2019'10, gokhan@kylone.com
 
 #
 # Evironment variables
@@ -8,14 +7,26 @@
 #    CMISO      : official ISO to use (i.e. CentOS-8.1.1911-x86_64-boot.iso)
 #    CMOUT      : resultig ISO file name (i.e. CentOS-8.1.1911-x86_64-minimal.iso)
 #    CMETH      : dependency resolving method to use (deep or fast)
-#
+
+# Color codes for printing colored output
+RESET=`tput sgr0`
+
+COLOR_BLACK=`tput setaf 0`
+COLOR_RED=`tput setaf 1`
+COLOR_GREEN=`tput setaf 2`
+COLOR_YELLOW=`tput setaf 3`
+COLOR_BLUE=`tput setaf 4`
+COLOR_MAGENTA=`tput setaf 5`
+COLOR_CYAN=`tput setaf 6`
+COLOR_WHITE=`tput setaf 7`
+
 # Default values
 #
 # default official ISO to use
 iso="CentOS-Stream.iso"
 #
 # resulting ISO file name and volume label
-# such values will be determined again according to source image during ISO mount
+# such values will be determined again according to source image during ISO unpack
 out="CentOS-Stream-Minimal.iso"
 lbl="CentOS-Stream-Minimal"
 #
@@ -42,12 +53,11 @@ function cmusagestep() {
    echo "Usage: ${0} step .."
    echo
    echo " Workflow steps:"
-   echo "    isomount"
+   echo "    isounpack"
    echo "    createtemplate"
    echo "    scandeps"
    echo "    createrepo"
    echo "    createiso"
-   echo "    isounmount"
    echo
    echo " Some usefull functions:"
    echo "    rpmname <package> [package ..]"
@@ -89,16 +99,8 @@ function cmdot() {
    fi
 }
 
-function cmisounmount() {
-   if [ -d "${md}" ]; then
-      echo -n " ~ unmount ISO .."
-      umount "${md}" 2>/dev/null || true
-      rm -rf "${md}"
-      echo " done"
-   fi
-}
 
-function cmisomount() {
+function cmisounpack() {
    if [ ! -e "${iso}" ]; then
       echo
       echo " ! Reference ISO (${iso}) not found."
@@ -113,19 +115,16 @@ function cmisomount() {
       echo
       exit 1
    fi
-   cmisounmount
-   echo " ~ mount ISO "
+   echo " ~ unpacking ISO "
    if [ ! -d "${md}" ]; then
       mkdir -p "${md}"
       7z x -y "${iso}" -o"${md}"/ || exit 1
-      #mount -o loop "${iso}" "${md}" 2>&1 | cmpipe
       cmcheck
-      echo "   ${md} mounted"
+      echo "   ${md} unpacked"
    fi
 }
 
 function cmclean() {
-   cmisounmount
    rm -rf "${dp}"
    rm -f target_comps.xml "${out}" .[cpmrdtfu]*
 }
@@ -133,8 +132,8 @@ function cmclean() {
 function cmcreatetemplate() {
    if [ ! -d "${md}" ]; then
       if [ "${CMSTEP}" != "" ]; then
-         echo " ! ISO not mounted, please run;"
-         echo "   ${0} step isomount"
+         echo " ! ISO not unpacked, please run;"
+         echo "   ${0} step isounpack"
          echo
       fi
       return
@@ -193,22 +192,6 @@ function cmcreatetemplate() {
    echo " done"
 }
 
-function resolvefast() {
-   # input arguments
-   # package [package ..]
-   tf="${CMTEMP}"
-   vb="${CMVERBOSE}"
-   if [ "${vb}" != "" ]; then
-      echo "${@}" | tr " " "\n" | cmpipe "   "
-   fi
-   repoquery --requires --resolve --recursive "${@}" 2>/dev/null | \
-      awk -F":" {'print $1'} | \
-      sed 's/\-[0-9]\+$//g' | \
-      sort | uniq | \
-      grep -v "glibc-all-langpacks\|glibc-langpack-[a-z0-9]\+$" \
-   >> "${tf}"
-}
-
 function resolvedeep() {
    # input arguments
    # package [package ..]
@@ -237,74 +220,6 @@ function resolvedeep() {
          CMSEP="${s}" resolvedeep "${line}"
       fi
    done
-}
-
-function cmfulldeps() {
-   # input arguments
-   # package [package ..]
-   if [ "${1}" == "" ]; then
-      echo "Usage: ${0} step fulldeps <package> [package ..]"
-      echo
-      exit 1
-   fi
-   rm -f ".pkgs" ".tree"
-   touch ".pkgs" ".tree"
-   echo " ~ Resolving dependencies for ${@}"
-   if [ "${met}" == "deep" ]; then
-      CMVERBOSE=1 CSEP=" " CMTEMP=".pkgs" resolvedeep "${@}"
-   else
-      rm -f .fast
-      CMVERBOSE=1 CMTEMP=".fast" resolvefast "${@}"
-      cat .fast | sort | uniq > .pkgs
-      rm -f .fast
-   fi
-   echo " ~ Full dependency list of ${1}"
-   cat .pkgs | sort | cmpipe "   "
-}
-
-function cmcreatelist() {
-   echo -n " ~ Creating package list "
-   rm -f .core
-   echo -n "."
-   dnf group info $(grep "^@" packages.txt | sed "s/^@//") | grep -v ':' | tr -s ' ' > .core 
-   echo -n "."
-   cat packages.txt | grep -v "^@" | grep -v "^#" | grep -v "^$" >> .core
-
-   # package rhc part of @core is not being able to get downloaded.  Therefore omitting it 
-   sed -i '/rhc/d' .core
-
-   echo " done"
-   tp="$(cat .core | sort | uniq | wc -l)"
-   echo " ~ Resolving dependencies for ${tp} package(s)"
-   if [ "${CMVERBOSE}" == "" ]; then
-      echo -n "   "
-   fi
-   rm -f .tree .pkgs
-   touch .pkgs
-   cat .core | sort | uniq | while read line; do
-      if [ "${met}" == "deep" ]; then
-         if [ "${CMVERBOSE}" != "" ]; then
-            CMTEMP=".pkgs" CMSEP=" " resolvedeep "${line}"
-         fi
-      fi
-      echo "${line}" >> .pkgs
-      if [ "${CMVERBOSE}" == "" ]; then
-         echo -n "."
-      fi
-   done
-   if [ "${met}" == "deep" ]; then
-      if [ "${CMVERBOSE}" == "" ]; then
-         CMTEMP=".pkgs" CMSEP=" " resolvedeep $(cat .core | sort | uniq | tr "\n" " ")
-      fi
-   else
-      CMTEMP=".pkgs" resolvefast $(cat .core | sort | uniq | tr "\n" " ")
-   fi
-   rm -f .core
-   cat .pkgs | sort | uniq > .pkgf
-   mv .pkgf .pkgs
-   if [ "${CMVERBOSE}" == "" ]; then
-      echo " done"
-   fi
 }
 
 function cmrpmdownload() {
@@ -355,53 +270,6 @@ function rpmdownloadusingdnf() {
    dnf download --arch=noarch,x86_64 --releasever=8 --installroot=/root/temp/ --resolve --alldeps --destdir=/root/rpms ${pkg} -x \*i686
 }
 
-function rpmdownload() {
-   # input arguments
-   # package [package ..]
-   if [ "${1}" == "" ]; then
-      echo " ! Pacakge name required for rpmdownload"
-      echo 
-      exit 1
-   fi
-   ul="${CMURL}"
-   mkdir -p rpms
-   if [ "${ul}" == "" ]; then
-      ul="$(yumdownloader --urlprotocol http --urls "${@}" 2>/dev/null | \
-            grep "^https" | \
-            sort | uniq)"
-   fi
-   echo "${ul}" | while read u; do
-      if [ "${u}" != "" ]; then
-         f=`echo "${u}" | awk -F"/" {'print $NF'}`
-         if [ -e "rpms/${f}" ]; then
-            if [ "$(file "rpms/${f}" | grep "RPM ")" != "" ]; then
-               echo "${f}"
-               continue
-            fi
-            rm -f "rpms/${f}"
-         fi
-         if [ -e "cache/${f}" ]; then
-            cp "cache/${f}" "rpms/"
-            echo "${f}"
-            continue
-         fi
-         curl -L -s "${u}" -o "rpms/${f}"
-         if [ "${?}" == "0" ]; then
-            if [ "$(file "rpms/${f}" | grep "RPM ")" != "" ]; then
-               echo "${u}" >> .dlrpm
-               echo "${f}"
-            else
-               rm -f "rpms/${f}"
-               echo "${u} -> ${f}" > .dler
-            fi
-         else
-            rm -f "rpms/${f}"
-            echo "${u} -> ${f}" > .dler
-         fi
-      fi
-   done
-}
-
 function cmrpmurlusingdnf() {
    # input arguments
    # package [package ..]
@@ -421,39 +289,6 @@ function cmrpmurlusingdnf() {
    } || true
 }
 
-function cmrpmurl() {
-   # input arguments
-   # package [package ..]
-   if [ "${CMSTEP}" != "" -a "${1}" == "" ]; then
-      echo "Usage: ${0} step rpmurl <package> [package ..]"
-      echo 
-      exit 1
-   fi
-   yumdownloader --urlprotocol https --urls "${@}" | \
-      grep "^https" | \
-      sort | uniq > "${pw}/.urls"
-   
-   [ ! -f ${pw}/.urls ] && {
-      echo "Not all dependent packages found.  Please fix before proceeding !!"
-      echo
-      exit 1
-   } || true
-}
-
-function cmrpmname() {
-   # input arguments
-   # package [package ..]
-   if [ "${CMSTEP}" != "" -a "${1}" == "" ]; then
-      echo "Usage: ${0} step rpmname <package> [package ..]"
-      echo 
-      exit 1
-   fi
-   repoquery "${@}" 2>/dev/null | \
-      sed 's/\-[0-9]\+:/\-/g' | \
-      awk {'print $1".rpm"'} | \
-      sort | uniq
-}
-
 function cmcopyrpmtorepo() {
    # input argument
    # package 
@@ -464,159 +299,22 @@ function cmcopyrpmtorepo() {
      exit 1
    fi
    
-   rpmurl="$(dnf download --releasever=8 --installroot=/root/temp/ -x \*i686 --urls $(echo ${1} | sed 's/\-[0-9].*//g') | grep 'http:' || echo http://mirror.pulsant.com/sites/centos/8-stream/AppStream/x86_64/os/Packages/${1})"
-   #rpmurl="$(grep ${1} ${pw}/.urls || echo http://mirror.pulsant.com/sites/centos/8-stream/AppStream/x86_64/os/Packages/${1})"
+   rpmurl="$(dnf download --releasever=8 --installroot=/root/temp/ -x \*i686 --urls $(echo ${1} | sed 's/\-[0-9].*//g') | grep 'http:' \
+          || echo http://mirror.pulsant.com/sites/centos/8-stream/AppStream/x86_64/os/Packages/${1})"
    case $rpmurl in
      *BaseOS*)
        if [ -d "${bo}/Packages" ]; then
          cp "rpms/${1}" "${bo}/Packages/"
+         echo "Copied ${COLOR_BLUE}${1}${RESET} to ${COLOR_GREEN}BaseOS${RESET}/Packages/"
        fi
        ;;
      *)
        if [ -d "${ap}/Packages" ]; then
          cp "rpms/${1}" "${ap}/Packages/"
+         echo "Copied ${COLOR_BLUE}${1}${RESET} to ${COLOR_YELLOW}AppStream${RESET}/Packages/"
        fi
        ;;
    esac
-}
-
-function cmcollectrpmusingdnf() {
-   vb="${CMVERBOSE}"
-   if [ "${CMSTEP}" != "" -a "${1}" == "" ]; then
-      echo "Usage: ${0} step collectrpmusingdnf <package> [package ..]"
-      echo 
-      exit 1
-   fi
-   cmrpmurlusingdnf "${@}"
-
-   pkglist="${@}"
-   if [ "${pkglist}" != "" ]; then
-      echo "${pkglist}" | while read pk; do
-         rpmdownloadusingdnf "${pk}"
-      done
-   fi
-
-   dl="$(cat "${pw}/.urls")"
-   rr="$(echo "${dl}" | awk -F"/" {'print $NF'} | sort | uniq)"
-   if [ "${rr}" != "" ]; then
-      mkdir -p rpms
-      echo "${rr}" | while read r; do
-         if [ -e "rpms/${r}" ]; then
-            cmcopyrpmtorepo ${r}
-            if [ "${vb}" != "" ]; then
-               echo "     cached: ${r}"
-            else
-               echo -n "."
-            fi
-         else
-            pk="$(echo "${r}" | awk -F".el8" {'print $1'} | sed 's/\-[0-9\.\-]\+$//g')"
-            fu="$(echo "${dl}" | grep "/${r}$")"
-            if [ "${fu}" == "" ]; then
-               ir="$(echo "${r}" | sed 's/\.x86_64/\.i686/g')"
-               fu="$(echo "${dl}" | grep "/${ir}$")"
-            fi
-            if [ "$(echo "${fu}" | wc -l)" != "1" ]; then
-               fu=""
-               rp="$(echo "${r}" | awk -F".rpm" {'print $1'})"
-               pk="$(dnf info "${rp}" | grep "^Name" | awk -F": " {'print $2'} | sort | uniq)"
-            fi
-            if [ "${vb}" != "" ]; then
-               echo; echo "downloading: ${pk}, ${r}"; echo
-            fi
-            rpmdownloadusingdnf "${r}"
-            cmcopyrpmtorepo ${r}
-         fi
-      done
-   else
-      echo "${@}" >> .rslv
-      args="${@}"
-      if [ "${args}" != "" ]; then
-         echo " unresolved: ${args}"
-         echo
-         exit 0
-      else
-         echo -n "!"
-      fi
-   fi
-}
-
-function cmcollectrpm() {
-   # input arguments
-   # package [package ..]
-   vb="${CMVERBOSE}"
-   if [ "${CMSTEP}" != "" -a "${1}" == "" ]; then
-      echo "Usage: ${0} step collectrpm <package> [package ..]"
-      echo 
-      exit 1
-   fi
-   cmrpmurl "${@}"
-   dl="$(cat "${pw}/.urls")"
-   rr="$(echo "${dl}" | awk -F"/" {'print $NF'} | sort | uniq)"
-   if [ "${rr}" != "" ]; then
-      mkdir -p rpms
-      echo "${rr}" | while read r; do
-         if [ -e "rpms/${r}" ]; then
-            cmcopyrpmtorepo ${r}
-            if [ "${vb}" != "" ]; then
-               echo "     cached: ${r}"
-            else
-               echo -n "."
-            fi
-         else
-            pk="$(echo "${r}" | awk -F".el8" {'print $1'} | sed 's/\-[0-9\.\-]\+$//g')"
-            fu="$(echo "${dl}" | grep "/${r}$")"
-            if [ "${fu}" == "" ]; then
-               ir="$(echo "${r}" | sed 's/\.x86_64/\.i686/g')"
-               fu="$(echo "${dl}" | grep "/${ir}$")"
-            fi
-            if [ "$(echo "${fu}" | wc -l)" != "1" ]; then
-               fu=""
-               rp="$(echo "${r}" | awk -F".rpm" {'print $1'})"
-               pk="$(dnf info "${rp}" | grep "^Name" | awk -F": " {'print $2'} | sort | uniq)"
-            fi
-            # set -x
-            if [ "${vb}" != "" ]; then
-               echo; echo "downloading: ${pk}, ${r}"; echo
-            fi
-            dd="$(CMURL="${fu}" rpmdownload "${pk}")"
-            if [ "${dd}" == "" ]; then
-               echo "${pk}:${r}:<none>" >> .miss            # TODO
-               if [ "${vb}" != "" ]; then
-                  echo "  not found: ${r} (${pk})"
-               else
-                  echo -n "!"
-               fi
-            else
-               echo "${dd}" | while read d; do
-                  if [ "${d}" != "${r}" ]; then
-                     cmcopyrpmtorepo ${d}
-                     if [ "${vb}" != "" ]; then
-                        echo " dowmloaded: ${r} -> ${d}, ${pk}"
-                     else
-                        echo -n ":"
-                     fi
-                  else
-                     cmcopyrpmtorepo ${d}
-                     if [ "${vb}" == "" ]; then
-                        echo -n ":"
-                     fi
-                  fi
-               done
-            fi
-            # set +x
-         fi
-      done
-   else
-      echo "${@}" >> .rslv
-      args="${@}"
-      if [ "${args}" != "" ]; then
-         echo " unresolved: ${args}"
-         echo
-         exit 0
-      else
-         echo -n "!"
-      fi
-   fi
 }
 
 function cmcollectrpms() {
@@ -638,7 +336,6 @@ function cmcollectrpms() {
       fi
    done
 
-   #cmcollectrpmusingdnf $(cat .pkgs | sort | uniq | tr "\n" " ")
    if [ "${CMVERBOSE}" == "" ]; then
       echo " done"
    fi
@@ -739,52 +436,22 @@ function cmcreateiso() {
    echo " ~ ISO image ready: ${out} (${isz})"
 }
 
-function cmjobsingle() {
-   # input arguments
-   # package [package ..]
-   rm -f .[cpmrdtf]*
-   touch .pkgs .tree
-   echo " ~ Creating package list for ${@} "
-   if [ "${met}" == "deep" ]; then
-      CMVERBOSE=1 CMTEMP=".pkgs" CMSEP=" " resolvedeep "${@}"
-   else
-      rm -f .fast
-      CMVERBOSE=1 CMTEMP=".fast" resolvefast "${@}"
-      cat .fast | sort | uniq > .pkgs
-   fi
-   echo " ~ Package with dependencies"
-   cat .pkgs | cmpipe "   "
-   if [ "${met}" == "deep" ]; then
-      echo " ~ Dependency tree"
-      cat .tree | cmpipe "   "
-   fi
-   echo " ~ Searching RPMs"
-   CMVERBOSE=1 cmcollectrpm $(cat .pkgs | sort | uniq | tr "\n" " ")
-}
-
-function cmscandeps() {
-   cmcreatelist
-   cmcollectrpms
-}
-
 function cmjobfull() {
    cmclean
-   cmisomount
+   cmisounpack
    cmcreatetemplate
-   cmscandeps
+   cmcollectrpms
    cmcreaterepo
    cmcreateiso
-   cmisounmount
 }
 
 function cmjobquick() {
    if [ "${CMISO}" != "" ]; then
-      cmisomount
+      cmisounpack
    fi
    cmcreatetemplate
    cmcreaterepo
    cmcreateiso
-   cmisounmount
 }
 
 if [ ! -e /etc/centos-release ]; then
@@ -798,7 +465,7 @@ if [ ! -e "/usr/bin/repoquery" -o ! -e "/usr/bin/createrepo" -o ! -e "/usr/bin/y
    echo " ! Some additional packages needs to be installed."
    echo "   Please run following command to have them all:"
    echo
-   echo "   yum -y install yum-utils createrepo syslinux genisoimage isomd5sum bzip2 curl file"
+   echo "   dnf -y install yum-utils createrepo syslinux genisoimage isomd5sum bzip2 curl file"
    echo
    exit 1
 fi
