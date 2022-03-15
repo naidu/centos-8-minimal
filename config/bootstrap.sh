@@ -55,15 +55,13 @@ function cmusagestep() {
    echo " Workflow steps:"
    echo "    isounpack"
    echo "    createtemplate"
-   echo "    scandeps"
+   echo "    collectrpms"
    echo "    createrepo"
    echo "    createiso"
    echo
    echo " Some usefull functions:"
-   echo "    rpmname <package> [package ..]"
    echo "    rpmurl <package> [package ..]"
    echo "    rpmdownload <package> [package ..]"
-   echo "    fulldeps <package> [package ..]"
    echo
    exit 1
 }
@@ -192,76 +190,11 @@ function cmcreatetemplate() {
    echo " done"
 }
 
-function resolvedeep() {
-   # input arguments
-   # package [package ..]
-   s="${CMSEP}-"
-   tf="${CMTEMP}"
-   vb="${CMVERBOSE}"
-   repoquery --requires --resolve "${@}" 2>/dev/null | \
-      awk -F":" {'print $1'} | \
-      sed 's/\-[0-9]\+$//g' | \
-      sort | uniq | \
-   while read line; do
-      if [ "${line}" == "glibc-all-langpacks" -o "$(echo "${line}" | grep "glibc-langpack-[a-z0-9]\+$")" != "" ]; then
-         if [ "${vb}" != "" ]; then
-            echo "       skip: ${@}	${line}"
-         fi
-         continue
-      fi
-      if [ "$(cat "${tf}" | grep "^${line}$")" == "" ]; then
-         echo "${s} ${line}" >> .tree
-         echo "${line}" >> "${tf}"
-         if [ "${vb}" != "" ]; then
-            echo "    package: ${@}	${line}"
-         else
-            echo -n ","
-         fi
-         CMSEP="${s}" resolvedeep "${line}"
-      fi
-   done
-}
-
 function cmrpmdownload() {
    # input arguments
    # package [package ..]
    if [ "${1}" == "" ]; then
-      echo "Usage: ${0} rpmdownload <package>"
-      echo 
-      exit 1
-   fi
-   mkdir -p rpms
-   yumdownloader --urlprotocol http --urls "${@}" 2>/dev/null | \
-      grep "^http" | \
-      sort | uniq | \
-   while read u; do
-      if [ "${u}" != "" ]; then
-         f=`echo "${u}" | awk -F"/" {'print $NF'}`
-         if [ -e "rpms/${f}" ]; then
-            if [ "$(file "rpms/${f}" | grep "RPM ")" != "" ]; then
-               echo " - exists (rpms/${f})"
-               continue
-            fi
-            rm -f "rpms/${f}"
-         fi
-         echo "   ${f} [${u}]"
-         curl -s "${u}" -o "rpms/${f}"
-         if [ "${?}" == "0" ]; then
-            if [ "$(file "rpms/${f}" | grep "RPM ")" == "" ]; then
-               rm -f "rpms/${f}"
-               echo " ! failed"
-            fi
-         else
-            rm -f "rpms/${f}"
-            echo " ! failed"
-         fi
-      fi
-   done
-}
-
-function rpmdownloadusingdnf() {
-   if [ "${1}" == "" ]; then
-      echo " ! Pacakge name required for rpmdownloadusingdnf"
+      echo " ! Pacakge name required for rpmdownload"
       echo 
       exit 1
    fi
@@ -270,11 +203,11 @@ function rpmdownloadusingdnf() {
    dnf download --arch=noarch,x86_64 --releasever=8 --installroot=/root/temp/ --resolve --alldeps --destdir=/root/rpms ${pkg} -x \*i686
 }
 
-function cmrpmurlusingdnf() {
+function cmrpmurl() {
    # input arguments
    # package [package ..]
    if [ "${CMSTEP}" != "" -a "${1}" == "" ]; then
-      echo "Usage: ${0} step rpmurlusingdnf <package> [package ..]"
+      echo "Usage: ${0} step rpmurl <package> [package ..]"
       echo 
       exit 1
    fi
@@ -318,14 +251,15 @@ function cmcopyrpmtorepo() {
 }
 
 function cmcollectrpms() {
-   tp="$(cat .pkgs | sort | uniq | wc -l)"
-   echo " ~ Searching RPMs for ${tp} package(s)"
+   echo " ~ Collecting RPMs for package(s)"
    if [ "${CMVERBOSE}" == "" ]; then
       echo -n "   "
    fi
    rm -f .miss .rslv .dler
    mkdir -p rpms
+   
    [ -d "rpms.cache" ] && cp rpms.cache/* rpms/ || true
+   
    dnf groupinstall --downloadonly -y --nobest --releasever=8 --installroot=/root/temp/ --destdir=/root/rpms/ $(grep "^@" packages.txt | sed "s/^@//") -x \*i686 $(grep "^-" packages.txt | sed "s/^-/-x /") 
    dnf download --arch=noarch,x86_64 --releasever=8 --installroot=/root/temp/ --resolve --alldeps --destdir=/root/rpms/ $(grep -v "^#" packages.txt | grep -v "^@" | grep -v "^-") -x \*i686
 
@@ -345,7 +279,7 @@ function cmcreaterepo() {
    if [ ! -d "${bo}/Packages" ]; then
       echo " ! Image temmplate is not ready, please run;"
       echo "   ${0} step createtemplate"
-      echo "   ${0} step scandeps"
+      echo "   ${0} step collectrpms"
       echo
       exit 1
    fi

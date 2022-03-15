@@ -1,12 +1,15 @@
 #!/bin/bash -e
 
-CMOUT="CentOS-x86_64-minimal.iso"
-
-./bootstrap.sh clean
+if [ "${1}" == "" ]; then
+  CMOUT="CentOS-x86_64-minimal.iso"
+else
+  CMOUT="${1}"
+fi
+           ./bootstrap.sh clean
 CMISO="$1" ./bootstrap.sh step isounpack
-./bootstrap.sh step createtemplate
-./bootstrap.sh step collectrpms
-./bootstrap.sh step createrepo
-CMOUT="$1" ./bootstrap.sh step createiso
+           ./bootstrap.sh step createtemplate
+           ./bootstrap.sh step collectrpms
+           ./bootstrap.sh step createrepo
+           ./bootstrap.sh step createiso
 
 cp ./${CMOUT} /mnt/
