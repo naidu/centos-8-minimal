@@ -30,11 +30,6 @@ iso="CentOS-Stream.iso"
 out="CentOS-Stream-Minimal.iso"
 lbl="CentOS-Stream-Minimal"
 #
-# dependency resolving method
-# deep: check dependency of every package one by one
-# fast: check core package depedencies only
-met="fast"
-#
 # no need to change further
 
 pw="$(pwd)"
@@ -319,14 +314,6 @@ function cmcreateiso() {
       exit 1
    fi
 
-   if [[ -f .miss && $(wc -l < .miss) -ge 1 ]]; then
-      echo " ! Below packages failed to get downloaded;"
-      echo "   $(cat .miss)"
-      echo "   Please fix them before proceeding to build the iso"
-      echo 
-      exit 1 
-   fi
-
    lbl="$(cat "${dp}/isolinux/isolinux.cfg" | grep "LABEL=" | awk -F"LABEL=" {'print $2'} | awk {'print $1'} | grep -v "^$" | head -1 | tr -d "\n\r")"
    if [ "${CMOUT}" == "" ]; then
       out="CentOS-x86_64-minimal.iso"
@@ -402,9 +389,6 @@ if [ "${CMISO}" != "" ]; then
 fi
 if [ "${CMOUT}" != "" ]; then
    out="${CMOUT}"
-fi
-if [ "${CMETH}" != "" ]; then
-   met="${CMETH}"
 fi
 if [ ! -e "packages.txt" ]; then
    touch "packages.txt"
