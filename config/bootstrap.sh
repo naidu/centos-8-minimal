@@ -108,7 +108,7 @@ function cmisounpack() {
       echo
       exit 1
    fi
-   echo " ~ unpacking ISO "
+   echo " ${COLOR_GREEN}~ unpacking ISO${RESET} "
    if [ ! -d "${md}" ]; then
       mkdir -p "${md}"
       7z x -y "${iso}" -o"${md}"/ || exit 1
@@ -131,7 +131,7 @@ function cmcreatetemplate() {
       fi
       return
    fi
-   echo -n " ~ Preparing image template "
+   echo -n " ${COLOR_GREEN}~ Preparing image template${RESET}"
    echo -n "."
    mkdir -p "${dp}"
    mkdir -p "${bo}/Packages"
@@ -246,7 +246,7 @@ function cmcopyrpmtorepo() {
 }
 
 function cmcollectrpms() {
-   echo " ~ Collecting RPMs for package(s)"
+   echo " ${COLOR_GREEN}~ Collecting RPMs for package(s)${RESET}"
    if [ "${CMVERBOSE}" == "" ]; then
       echo -n "   "
    fi
@@ -279,7 +279,7 @@ function cmcreaterepo() {
       exit 1
    fi
 
-   echo " ~ Creating repodata "
+   echo " ${COLOR_GREEN}~ Creating repodata${RESET}"
    cd "${bo}"
    cmcheck
    rm -rf repodata
@@ -308,7 +308,7 @@ function cmcreaterepo() {
 
 function cmcreateiso() {
    if [ ! -d "${bo}/repodata" ]; then
-      echo " ! Repo is not ready, please run;"
+      echo " ${COLOR_RED}! Repo is not ready, please run;${RESET}"
       echo "   ${0} step createrepo"
       echo
       exit 1
@@ -318,7 +318,7 @@ function cmcreateiso() {
    if [ "${CMOUT}" == "" ]; then
       out="CentOS-x86_64-minimal.iso"
    fi
-   echo " ~ Creating ISO image"
+   echo " ${COLOR_GREEN}~ Creating ISO image${RESET}"
    cd "${dp}"
    chmod 664 isolinux/isolinux.bin
    rm -f "${pw}/${out}"
@@ -337,18 +337,18 @@ function cmcreateiso() {
       -R -J -v -T . 2>&1 | cmdot
       cmcheck
    if [ -e "/usr/bin/isohybrid" ]; then
-      echo " ~ ISO hybrid"
+      echo " ${COLOR_GREEN}~ ISO hybrid${RESET}"
       isohybrid --uefi "${pw}/${out}" | cmdot
       cmcheck
    fi
    if [ -e "/usr/bin/implantisomd5" ]; then
-      echo " ~ Implant ISO MD5"
+      echo " ${COLOR_GREEN}~ Implant ISO MD5${RESET}"
       implantisomd5 --force --supported-iso "${pw}/${out}" | cmdot
       cmcheck
    fi
    cd "${pw}"
    isz="$(du -h "${out}" | awk {'print $1'})"
-   echo " ~ ISO image ready: ${out} (${isz})"
+   echo " ${COLOR_GREEN}~ ISO image ready: ${COLOR_MAGENTA}${out}${RESET} (${COLOR_YELLOW}${isz}${RESET})"
 }
 
 function cmjobfull() {
