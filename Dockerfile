@@ -1,5 +1,16 @@
-FROM naidu/centos-stream:latest
-MAINTAINER me@btrnaidu.com
+FROM centos:8
+
+ENV TERM xterm-256color
+ENV USERHOME=/root
+
+RUN dnf --disablerepo '*' --enablerepo extras swap centos-linux-repos centos-stream-repos -y && \ 
+  dnf distro-sync -y
+
+RUN dnf update -y && \
+  dnf install -y yum-utils createrepo syslinux genisoimage isomd5sum bzip2 curl file git wget unzip 
+
+USER 0
+WORKDIR $USERHOME
 
 RUN dnf install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm && \
   dnf update -y && \
