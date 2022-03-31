@@ -37,6 +37,7 @@ dp="${pw}/image"
 md="${pw}/mtemp"
 bo="${dp}/BaseOS"
 ap="${dp}/AppStream"
+pr="${dp}/PyRepo"
 
 pm="python.modules"
 pmd="$(pwd)/ptemp"
@@ -124,7 +125,7 @@ function cmisounpack() {
 
 function cmclean() {
    rm -rf "${dp}"
-   rm -f target_comps.xml "${out}" .[cpmrdtfu]*
+   rm -rf target_comps.xml "${out}" .[cpmrdtfu]*
 }
 
 function cmcreatetemplate() {
@@ -149,6 +150,7 @@ function cmcreatetemplate() {
    cp "templ_discinfo" "${dp}/.discinfo"
    cp "templ_media.repo" "${dp}/media.repo"
    cp "ks.cfg" "${dp}/"
+   [ -f "${pm}" ] && cp "${pm}" "ks_configs/"
    cp -r "ks_configs" "${dp}/"
    echo -n "."
    cp -r "${md}/isolinux" "${dp}/"
@@ -322,6 +324,10 @@ function cmcreaterepo() {
    cd "${pw}"
 
    rm -f "${uc}"
+
+   [ ! -d ${pmd} ] && return 0
+   [ ! -d ${pr} ] && mkdir -p ${pr}
+   cp -rf ${pmd}/* ${pr}/
 }
 
 function cmcreateiso() {
