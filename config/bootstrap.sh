@@ -38,6 +38,11 @@ md="${pw}/mtemp"
 bo="${dp}/BaseOS"
 ap="${dp}/AppStream"
 
+pm="python.modules"
+pmd="$(pwd)/ptemp"
+dnir="$(pwd)/dtemp/"
+dnddr="$(pwd)/rpms/"
+
 function cmusage() {
    echo "Usage: ${0} <run [force] | clean | debug [package [package ..]] | step ..>"
    echo
@@ -195,7 +200,7 @@ function cmrpmdownload() {
    fi
    mkdir -p rpms
    pkg="$(echo "${@}" | rev | cut -d/ -f1 | cut -d- -f3- | rev)"
-   dnf download --arch=noarch,x86_64 --releasever=8 --installroot=/root/temp/ --resolve --alldeps --destdir=/root/rpms ${pkg} -x \*i686
+   dnf download --arch=noarch,x86_64 --releasever=8 --installroot=${dnir} --resolve --alldeps --destdir=/root/rpms ${pkg} -x \*i686
 }
 
 function cmrpmurl() {
@@ -228,7 +233,7 @@ function cmcopyrpmtorepo() {
    fi
    
    rpmpkgname=$(echo ${1} | sed s/\+/%2b/g)
-   rpmurl="$(grep Downloading.*://.*${rpmpkgname} /root/temp/var/log/dnf.librepo.log)" 
+   rpmurl="$(grep Downloading.*://.*${rpmpkgname} ${dnir}var/log/dnf.librepo.log)" 
    
    case $rpmurl in
      *BaseOS*)
@@ -256,8 +261,8 @@ function cmcollectrpms() {
    
    [ -d "rpms.cache" ] && cp rpms.cache/* rpms/ || true
    
-   dnf groupinstall --downloadonly -y --nobest --releasever=8 --installroot=/root/temp/ --destdir=/root/rpms/ $(grep "^@" packages.txt | sed "s/^@//") -x \*i686 $(grep "^-" packages.txt | sed "s/^-/-x /") 
-   dnf download --arch=noarch,x86_64 --releasever=8 --installroot=/root/temp/ --resolve --alldeps --destdir=/root/rpms/ $(grep -v "^#" packages.txt | grep -v "^@" | grep -v "^-") -x \*i686
+   dnf groupinstall --downloadonly -y --nobest --releasever=8 --installroot=${dnir} --destdir=${dnddr} $(grep "^@" packages.txt | sed "s/^@//") -x \*i686 $(grep "^-" packages.txt | sed "s/^-/-x /") 
+   dnf download --arch=noarch,x86_64 --releasever=8 --installroot=${dnir} --resolve --alldeps --destdir=${dnddr} $(grep -v "^#" packages.txt | grep -v "^@" | grep -v "^-") -x \*i686
 
    echo "$(ls rpms | sort | uniq)" | while read r; do
       if [ -e "rpms/${r}" ]; then
@@ -268,6 +273,19 @@ function cmcollectrpms() {
    if [ "${CMVERBOSE}" == "" ]; then
       echo " done"
    fi
+}
+
+function cmcollectpymodules() {
+   [ ! -f ${pm} ] && return -1
+
+   echo " ${COLOR_GREEN}~ Collecting Python Modules for package(s)${RESET}"
+   if [ "${CMVERBOSE}" == "" ]; then
+      echo -n "   "
+   fi
+
+   [ ! -d ${pmd} ] && mkdir -p ${pmd}
+
+   pip3 download -d ${pmd} -r ${pm}
 }
 
 function cmcreaterepo() {
@@ -356,6 +374,8 @@ function cmjobfull() {
    cmisounpack
    cmcreatetemplate
    cmcollectrpms
+   cmcollectpymodules
+   collectpymodules
    cmcreaterepo
    cmcreateiso
 }
