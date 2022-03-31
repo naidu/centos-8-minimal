@@ -8,3 +8,5 @@ open-vm-tools
 qemu-guest-agent
 
 grub2
+
+python3-pip
