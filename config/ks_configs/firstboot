@@ -1,0 +1,43 @@
+#!/bin/bash
+
+export BUILD_RUN_TYPE="ISO"
+
+# Disable firstboot script on next boot
+chmod -x /etc/init.d/firstboot
+
+function outs {
+   echo "$(date +%H:%M:%S): $*"
+}
+
+
+function on_error {
+    echo "ERROR on line $1"
+}
+
+function on_exit {
+    echo "EXIT"
+}
+
+
+#set -x -v
+
+LOGFILE="/root/firstboot.log"
+touch $LOGFILE
+chmod 640 $LOGFILE
+
+exec 3>&1 4>&2 1>>$LOGFILE 2>&1
+
+trap 'on_error $LINENO' ERR
+trap on_exit            EXIT
+
+outs "firstboot started"
+
+outs "Wait for boot to complete..."
+sleep 10
+
+outs "installing python modules"
+
+pip3 install --no-index --find-links="/repo/PyRepo" -r /root/python.modules
+
+outs "ready for reboot..."
+reboot
