@@ -136,6 +136,12 @@ If you want to download package(s) together with it's full dependencies you can 
 This "debug" switch will create verbose output.
 Again, dowloaded RPM files will be placed into "rpms/" folder for later use (and will not be added into ISO template).
 
+**python.modules**:
+
+If you have any phython packages to be downloaded for offline install and to be installed during ISO install the include them inside the `python.modules` file.  
+
+All files python modules mentioned in this file are downloaded during the ISO build and placed under the `/repo/py.modules` folder in the target system after installation.  The same is also used during the ISO install.  
+
 ### Environent Variables
 
 - **CMVERBOSE**=\<any value\>
