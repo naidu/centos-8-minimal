@@ -20,6 +20,8 @@ RUN dnf update -y && \
                    unzip \
                    python3-pip
 
+RUN python3 -m pip install --upgrade pip
+
 USER 0
 WORKDIR $USERHOME
 
