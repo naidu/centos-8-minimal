@@ -1,5 +1,7 @@
 #!/bin/bash -e
 
+echo "Build started at: `date`"
+
 if [ "${1}" == "" ]; then
   CMOUT="CentOS-x86_64-minimal.iso"
 else
@@ -14,3 +16,5 @@ CMISO="$1" ./bootstrap.sh step isounpack
            ./bootstrap.sh step createiso
 
 cp ./${CMOUT} /mnt/
+
+echo "Build finished at: `date`"

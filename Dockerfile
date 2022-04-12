@@ -39,4 +39,4 @@ COPY iso-input/isolinux.cfg \
 
 RUN ./download_files_for_build.sh
 RUN ./create_iso_in_container.sh
-CMD ["/bin/bash"]
+CMD ["/bin/bash", "-l"]
