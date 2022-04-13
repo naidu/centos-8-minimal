@@ -10,3 +10,27 @@ qemu-guest-agent
 grub2
 
 python3-pip
+python3-setuptools
+python3-cryptography
+
+diffutils 
+make 
+file 
+automake 
+autoconf 
+libtool 
+gcc 
+gcc-c++ 
+openssl-devel 
+gawk 
+git
+expect 
+libtasn1-devel 
+socat 
+trousers 
+tpm-tools 
+gnutls-devel 
+gnutls-utils 
+net-tools 
+libseccomp-devel 
+json-glib-devel
