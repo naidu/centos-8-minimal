@@ -37,6 +37,12 @@ sleep 10
 
 outs "installing python modules"
 
+# update pip to required version
+outs "Upgrade pip to v21.3.1"
+pip3 install --no-index --find-links="/repo/PyRepo" pip==21.3.1 
+
+# install rest of the python modules
+outs "Installing python modules"
 pip3 install --no-index --find-links="/repo/PyRepo" -r /root/python.modules
 
 outs "ready for reboot..."
