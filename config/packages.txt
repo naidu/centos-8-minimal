@@ -1,6 +1,14 @@
-@^minimal-environment
+@base
+@core
+@standard
 
+## Guest Agents 
+hyperv-daemons
 open-vm-tools
+qemu-guest-agent
+
+grub2
+
 python3-pip
 python3-setuptools
 python3-cryptography

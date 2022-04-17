@@ -1,5 +1,7 @@
 #!/bin/bash -e
 
+echo "Build started at: `date`"
+
 if [ "${1}" == "" ]; then
   CMOUT="CentOS-x86_64-minimal.iso"
 else
@@ -9,7 +11,10 @@ fi
 CMISO="$1" ./bootstrap.sh step isounpack
            ./bootstrap.sh step createtemplate
            ./bootstrap.sh step collectrpms
+           ./bootstrap.sh step collectpymodules
            ./bootstrap.sh step createrepo
            ./bootstrap.sh step createiso
 
 cp ./${CMOUT} /mnt/
+
+echo "Build finished at: `date`"
