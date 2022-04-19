@@ -1,10 +1,11 @@
+@base
 @core
--biosdevname
-@^server-product-environment
-
+@server-product-environment
 
 kexec-tools
 curl
+
+grub2
 
 open-vm-tools
 python3-pip
