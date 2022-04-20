@@ -50,3 +50,12 @@ tar
 httpd
 epel-release
 yum-utils
+cockpit
+cockpit-machines
+cockpit-networkmanager
+cockpit-packagekit
+cockpit-storaged openvpn
+dnf-automatic
+ipa-client
+freeipa-client
+ipa-admintools
