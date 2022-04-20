@@ -1,5 +1,32 @@
 #!/bin/bash -e
 
+dnf --disablerepo '*' --enablerepo extras swap centos-linux-repos centos-stream-repos -y && dnf distro-sync -y
+
+dnf update -y && \
+    dnf install -y yum-utils \
+                   createrepo \
+                   syslinux \
+                   genisoimage \
+                   isomd5sum \
+                   bzip2 \
+                   curl \
+                   file \
+                   git \
+                   wget \
+                   unzip \
+                   python3-pip
+
+python3 -m pip install --upgrade pip==21.3.1
+
+
+
+dnf install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm && \
+  dnf update -y && \
+  dnf install -y p7zip p7zip-plugins xz
+
+dnf config-manager --add-repo=https://download.docker.com/linux/centos/docker-ce.repo && \
+  dnf update -y
+
 pushd /root
 
 [ ! -f CentOS-Stream.iso ] && {
